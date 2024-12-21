@@ -1,7 +1,6 @@
-name: Deploy to GitHub Pages
+name: Deploy to GitHub Pages [![Deploy to GitHub Pages](https://github.com/XroSilence/dust/actions/workflows/vite-github-pages-deploy.yml/badge.svg?event=deployment_status)](https://github.com/XroSilence/dust/actions/workflows/vite-github-pages-deploy.yml)
 
 on:
-  pull_request:
   push:
     branches: ["master", "main"]
   workflow_dispatch:
@@ -42,3 +41,4 @@ jobs:
         uses: actions/deploy-pages@v4
         env: 
           DEPLOY_SECRET: ${{ secrets.DEPLOY_SECRET }}
+
