@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { jsPDF } from 'jspdf';
 import { Calculator, Share2, FileDown, X, Home } from 'lucide-react';
-import PropTypes from 'prop-types'; // Add PropTypes import
+import PropTypes from 'prop-types';
 
 // Contact Form Modal Component
 const ContactFormModal = ({ onSubmit, onClose }) => {
@@ -72,11 +72,11 @@ const ContactFormModal = ({ onSubmit, onClose }) => {
             {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
           </div>
 
-          {/* Other form fields remain the same */}
+          {/* Add other form fields similarly */}
           
           <button
             type="submit"
-            className="w-full bg-blue-500 text-white font-semibold py-3 px-6 rounded-lg hover:bg-blue-600 transition-colors duration-200"
+            className="w-full bg-dustup-quote text-white font-semibold py-3 px-6 rounded-lg hover:bg-dustup-quote-hover transition-colors duration-200"
           >
             Continue to Calculator
           </button>
@@ -86,13 +86,7 @@ const ContactFormModal = ({ onSubmit, onClose }) => {
   );
 };
 
-// Add PropTypes validation
-ContactFormModal.propTypes = {
-  onSubmit: PropTypes.func.isRequired,
-  onClose: PropTypes.func.isRequired
-};
-
-// Success Message Component with PropTypes
+// Success Message Component
 const SuccessMessage = ({ onClose }) => {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -103,7 +97,7 @@ const SuccessMessage = ({ onClose }) => {
         </p>
         <button
           onClick={onClose}
-          className="bg-blue-500 text-white font-semibold py-2 px-6 rounded-lg hover:bg-blue-600 transition-colors duration-200"
+          className="bg-dustup-quote text-white font-semibold py-2 px-6 rounded-lg hover:bg-dustup-quote-hover transition-colors duration-200"
           type="button"
         >
           Close
@@ -113,60 +107,180 @@ const SuccessMessage = ({ onClose }) => {
   );
 };
 
-SuccessMessage.propTypes = {
-  onClose: PropTypes.func.isRequired
+// PDF Generation Function
+const generatePDF = (quoteData, contactInfo) => {
+  const doc = new jsPDF();
+  
+  // Set PDF styling to match website theme
+  doc.setFillColor(30, 41, 59); // slate-800 as background
+  doc.rect(0, 0, doc.internal.pageSize.width, doc.internal.pageSize.height, 'F');
+  doc.setTextColor(255, 255, 255); // white text
+
+  // Add animated logo with wind effect
+  const logoSVG = `
+    <svg width="200" height="60" xmlns="http://www.w3.org/2000/svg">
+      <style>
+        .logo-text { fill: white; font-size: 32px; font-weight: bold; }
+        .tagline { fill: white; font-size: 14px; }
+        @keyframes windRotate {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(180deg); }
+        }
+        .wind-icon {
+          animation: windRotate 0.5s ease-in-out;
+          transform-origin: center;
+        }
+      </style>
+      <g class="wind-icon">
+        <path d="M20,30 L35,20 M35,20 L50,30" stroke="white" stroke-width="2" />
+      </g>
+      <text x="60" y="35" class="logo-text">DUSTUP</text>
+      <text x="60" y="50" class="tagline">We Take Dust Down</text>
+    </svg>
+  `;
+  
+  // Convert SVG to data URL and add to PDF
+  const svgData = 'data:image/svg+xml;base64,' + btoa(logoSVG);
+  doc.addImage(svgData, 'SVG', 20, 10, 160, 40);
+
+  // Add decorative line under logo
+  doc.setDrawColor(59, 130, 246); // dustup-quote color
+  doc.setLineWidth(0.5);
+  doc.line(20, 55, 190, 55);
+
+  // Add quote content
+  // ... rest of the PDF content generation ...
+
+  return doc;
+};
+
+// Email Sending Function
+const sendQuoteEmail = async (pdf, contactInfo) => {
+  try {
+    const emailSubject = `${contactInfo.name}'s Quote Request`;
+    const emailBody = `
+      <div style="
+        background-color: rgb(30, 41, 59);
+        color: white;
+        padding: 20px;
+        font-family: Arial, sans-serif;
+        border-radius: 8px;
+      ">
+        <h1 style="color: #3B82F6; margin-bottom: 20px;">DUSTUP LTD</h1>
+        <p>We Take Dust Down</p>
+        <hr style="border-color: #3B82F6; margin: 20px 0;" />
+        <p>Quote request from ${contactInfo.name}</p>
+        <p>Company: ${contactInfo.company}</p>
+        <p>Contact: ${contactInfo.email}</p>
+        <p style="color: #69E515; margin-top: 20px;">Please find the detailed quote attached.</p>
+      </div>
+    `;
+    
+    const pdfBase64 = pdf.output('datauristring');
+    const mailtoLink = `mailto:Dustup_Official@pm.me?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}&attachment=${encodeURIComponent(pdfBase64)}`;
+    
+    window.location.href = mailtoLink;
+    
+    const mailtoSuccess = await new Promise(resolve => {
+      const initialTime = Date.now();
+      const checkFocus = () => {
+        if (document.hasFocus()) {
+          resolve(Date.now() - initialTime < 1000);
+        } else {
+          setTimeout(checkFocus, 100);
+        }
+      };
+      setTimeout(checkFocus, 100);
+    });
+
+    if (!mailtoSuccess) {
+      throw new Error('Email client may not have opened correctly');
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error sending email:', error);
+    throw error;
+  }
 };
 
 // Quote Calculator Component
-const QuoteCalculator = ({ metrics, setMetrics, conditions, setConditions, onSubmitQuote }) => {
-  const handleDeliveryChange = (type) => {
-    setConditions(prev => ({
-      ...prev,
-      standardDelivery: type === 'standard',
-      customDelivery: type === 'custom',
-      selfDelivery: type === 'self'
-    }));
+const QuoteCalculator = ({ metrics, setMetrics, conditions, setConditions, onSubmitQuote, contactInfo }) => {
+  const [exportStatus, setExportStatus] = useState({ type: null, message: null });
+
+  const handleExport = async (format) => {
+    setExportStatus({ type: 'loading', message: 'Processing...' });
+    try {
+      const quoteData = calculateQuote();
+      const formattedQuoteData = formatQuoteData(quoteData, metrics, conditions);
+      const pdf = generatePDF(formattedQuoteData, contactInfo);
+      
+      if (format === 'email') {
+        await sendQuoteEmail(pdf, contactInfo);
+        setExportStatus({ 
+          type: 'success', 
+          message: 'Email client opened successfully! If you don\'t see it, please check your email settings.' 
+        });
+      } else if (format === 'pdf') {
+        pdf.save(`${contactInfo.name}-quote.pdf`);
+        setExportStatus({ 
+          type: 'success', 
+          message: 'PDF exported successfully!' 
+        });
+      }
+      
+      onSubmitQuote(format);
+    } catch (error) {
+      let errorMessage = 'An error occurred. ';
+      if (error.message.includes('email client')) {
+        errorMessage += 'Try copying your default email client URL to your browser settings.';
+      } else {
+        errorMessage += 'Please try again or contact support.';
+      }
+      setExportStatus({ type: 'error', message: errorMessage });
+    } finally {
+      setTimeout(() => setExportStatus({ type: null, message: null }), 5000);
+    }
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          <Calculator className="w-6 h-6 text-blue-500" />
-          <h2 className="text-xl font-bold">Quote Calculator</h2>
-        </div>
+      {/* Your existing calculator form fields */}
+      
+      <div className="space-y-4">
         <div className="flex gap-2">
           <button 
-            onClick={() => onSubmitQuote('export')}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            onClick={() => handleExport('pdf')}
+            className="flex items-center gap-2 px-4 py-2 bg-dustup-quote text-white rounded hover:bg-dustup-quote-hover transition-all duration-300"
             type="button"
+            disabled={exportStatus.type === 'loading'}
           >
-            <FileDown className="w-4 h-4" />
-            Export
+            <FileDown className={`w-4 h-4 ${exportStatus.type === 'loading' ? 'animate-rotate-wind' : ''}`} />
+            {exportStatus.type === 'loading' ? 'Processing...' : 'Export PDF'}
           </button>
           <button 
-            onClick={() => onSubmitQuote('print')}
-            className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+            onClick={() => handleExport('email')}
+            className="flex items-center gap-2 px-4 py-2 bg-dustup-areas text-white rounded hover:bg-dustup-areas-hover transition-all duration-300"
             type="button"
+            disabled={exportStatus.type === 'loading'}
           >
-            <Share2 className="w-4 h-4" />
-            Print
+            <Share2 className={`w-4 h-4 ${exportStatus.type === 'loading' ? 'animate-rotate-wind' : ''}`} />
+            {exportStatus.type === 'loading' ? 'Processing...' : 'Send Email'}
           </button>
         </div>
+        
+        {exportStatus.message && (
+          <div className={`p-4 rounded-lg transition-all duration-300 ${
+            exportStatus.type === 'success' ? 'bg-dustup-areas/20 text-dustup-areas' :
+            exportStatus.type === 'error' ? 'bg-red-500/20 text-red-500' :
+            'bg-slate-500/20 text-slate-300'
+          }`}>
+            {exportStatus.message}
+          </div>
+        )}
       </div>
-      
-      {/* Calculator form fields */}
-      {/* Add your existing calculator form fields here */}
     </div>
   );
-};
-
-QuoteCalculator.propTypes = {
-  metrics: PropTypes.object.isRequired,
-  setMetrics: PropTypes.func.isRequired,
-  conditions: PropTypes.object.isRequired,
-  setConditions: PropTypes.func.isRequired,
-  onSubmitQuote: PropTypes.func.isRequired
 };
 
 // Main Quote Component
@@ -180,10 +294,8 @@ export default function Quote() {
     width: '',
     rafterRuns: '',
     rafterHeight: '',
-    specialRequest: '',
-    srCost: '',
-    customDeliveryCost: ''
-  });
+    specialRequest: ''
+   });
 
   const [conditions, setConditions] = useState({
     noLiftNeeded: false,
@@ -201,18 +313,19 @@ export default function Quote() {
   };
 
   const handleSubmitQuote = async (action) => {
-    // Implementation of quote submission
     try {
-      // Your quote submission logic here
-      setShowSuccess(true);
+      if (action === 'email' || action === 'pdf') {
+        // Handled in QuoteCalculator component
+      } else {
+        setShowSuccess(true);
+      }
     } catch (error) {
       console.error('Error submitting quote:', error);
-      // Handle error appropriately
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 py-8">
+    <div className="min-h-screen bg-slate-900 py-8">
       <div className="max-w-2xl mx-auto">
         {showContactForm ? (
           <ContactFormModal 
@@ -222,18 +335,18 @@ export default function Quote() {
         ) : showSuccess ? (
           <SuccessMessage onClose={() => setShowSuccess(false)} />
         ) : (
-          <div className="bg-white rounded-lg shadow p-8">
+          <div className="dustup-card dustup-card-inactive">
             <QuoteCalculator
               metrics={metrics}
               setMetrics={setMetrics}
               conditions={conditions}
               setConditions={setConditions}
               onSubmitQuote={handleSubmitQuote}
+              contactInfo={userContact}
             />
           </div>
         )}
         
-        {/* Back to Home button */}
         <div className="mt-8 text-center">
           <button
             onClick={() => navigate('/')}
