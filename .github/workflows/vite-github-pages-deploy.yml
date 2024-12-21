@@ -17,7 +17,6 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-        DEPLOY_SECRET: ${{ secrets.DEPLOY_SECRET }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -41,3 +40,5 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+        env: 
+          DEPLOY_SECRET: ${{ secrets.DEPLOY_SECRET }}
