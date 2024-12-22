@@ -5,6 +5,7 @@ import { Calculator, Share2, FileDown, X, Home } from 'lucide-react';
 import PropTypes from 'prop-types';
 
 // Contact Form Modal Component
+// ContactFormModal Component
 const ContactFormModal = ({ onSubmit, onClose }) => {
   const [contactInfo, setContactInfo] = useState({
     name: '',
@@ -67,12 +68,60 @@ const ContactFormModal = ({ onSubmit, onClose }) => {
                 setContactInfo(prev => ({...prev, name: e.target.value}));
                 setErrors(prev => ({...prev, name: ''}));
               }}
-              className={`mt-1 w-full p-3 rounded-lg border ${errors.name ? 'border-red-500' : 'border-gray-300'} focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
+              className={`mt-1 w-full p-3 rounded-lg border text-gray-900 ${
+                errors.name ? 'border-red-500' : 'border-gray-300'
+              } focus:ring-2 focus:ring-dustup-quote focus:border-dustup-quote`}
+              placeholder="Enter your name"
             />
             {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
           </div>
 
-          {/* Add other form fields similarly */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Email *</label>
+            <input
+              type="email"
+              required
+              value={contactInfo.email}
+              onChange={(e) => {
+                setContactInfo(prev => ({...prev, email: e.target.value}));
+                setErrors(prev => ({...prev, email: ''}));
+              }}
+              className={`mt-1 w-full p-3 rounded-lg border text-gray-900 ${
+                errors.email ? 'border-red-500' : 'border-gray-300'
+              } focus:ring-2 focus:ring-dustup-quote focus:border-dustup-quote`}
+              placeholder="Enter your email"
+            />
+            {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Phone *</label>
+            <input
+              type="tel"
+              required
+              value={contactInfo.phone}
+              onChange={(e) => {
+                setContactInfo(prev => ({...prev, phone: e.target.value}));
+                setErrors(prev => ({...prev, phone: ''}));
+              }}
+              className={`mt-1 w-full p-3 rounded-lg border text-gray-900 ${
+                errors.phone ? 'border-red-500' : 'border-gray-300'
+              } focus:ring-2 focus:ring-dustup-quote focus:border-dustup-quote`}
+              placeholder="Enter your phone number"
+            />
+            {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Company</label>
+            <input
+              type="text"
+              value={contactInfo.company}
+              onChange={(e) => setContactInfo(prev => ({...prev, company: e.target.value}))}
+              className="mt-1 w-full p-3 rounded-lg border text-gray-900 border-gray-300 focus:ring-2 focus:ring-dustup-quote focus:border-dustup-quote"
+              placeholder="Enter your company name"
+            />
+          </div>
           
           <button
             type="submit"
@@ -294,8 +343,10 @@ export default function Quote() {
     width: '',
     rafterRuns: '',
     rafterHeight: '',
-    specialRequest: ''
-   });
+    specialRequest: '',
+    srCost: '',
+    customDeliveryCost: ''
+  });
 
   const [conditions, setConditions] = useState({
     noLiftNeeded: false,
