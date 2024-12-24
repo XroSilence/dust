@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { jsPDF } from 'jspdf';
 import { Calculator, Share2, FileDown, X, Home } from 'lucide-react';
+import jsPDF from 'jspdf';
 import PropTypes from 'prop-types'; // Add PropTypes import
 
 // Contact Form Modal Component
@@ -119,14 +119,54 @@ SuccessMessage.propTypes = {
 
 // Quote Calculator Component
 const QuoteCalculator = ({ metrics, setMetrics, conditions, setConditions, onSubmitQuote }) => {
-  const handleDeliveryChange = (type) => {
-    setConditions(prev => ({
-      ...prev,
-      standardDelivery: type === 'standard',
-      customDelivery: type === 'custom',
-      selfDelivery: type === 'self'
-    }));
+  const calculateQuote = () => {
+    const baseArea = (metrics.length * metrics.width);
+    const cubicArea = baseArea * metrics.rafterHeight;
+    
+    let productionRate = conditions.duringOperation ? 400 : 540;
+    let estimatedDays = Math.ceil(baseArea / productionRate);
+    
+    // Labor calculation
+    let laborCost = estimatedDays * 8 * 120;
+    
+    // Equipment costs
+    let liftRentalCost = 0;
+    let deliveryCost = 0;
+
+    if (!conditions.noLiftNeeded) {
+      // Calculate rental cost based on days
+      if (estimatedDays <= 5) {
+        liftRentalCost = 120 * estimatedDays;
+      } else if (estimatedDays <= 20) {
+        liftRentalCost = 340 * Math.ceil(estimatedDays / 5);
+      } else {
+        liftRentalCost = 950 * Math.ceil(estimatedDays / 20);
+      }
+
+      // Delivery costs
+      if (conditions.standardDelivery) {
+        deliveryCost = 300;
+      } else if (conditions.customDelivery) {
+        deliveryCost = parseFloat(metrics.customDeliveryCost) || 0;
+      }
+    }
+
+    if (conditions.poorLiftAccess) laborCost *= 1.15;
+    if (conditions.afterHours) laborCost *= 1.25;
+
+    const srCost = parseFloat(metrics.specialRequest) || 0;
+    return {
+      estimatedDays,
+      laborCost,
+      liftRentalCost,
+      deliveryCost,
+      total: laborCost + liftRentalCost + deliveryCost,
+      cubicArea
+    };
   };
+
+  // Add the quote calculation result
+  const quote = calculateQuote();
 
   return (
     <div className="space-y-6">
@@ -155,8 +195,48 @@ const QuoteCalculator = ({ metrics, setMetrics, conditions, setConditions, onSub
         </div>
       </div>
       
-      {/* Calculator form fields */}
-      {/* Add your existing calculator form fields here */}
+      <div className="grid grid-cols-2 gap-6">
+        <div className="space-y-4">
+          <h2 className="font-semibold">Facility Metrics</h2>
+          <div className="space-y-2">
+            {/* Your existing facility metric inputs */}
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <h2 className="font-semibold">Conditions</h2>
+          <div className="space-y-2">
+            {/* Your existing conditions inputs */}
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-8 p-6 bg-gray-50 rounded-lg">
+        <h2 className="text-lg font-semibold mb-4">Quote Summary</h2>
+        <div className="space-y-2">
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <p>Total Area: {quote.cubicArea.toFixed(0)} cubic ft</p>
+              <p>Estimated Duration: {quote.estimatedDays} days</p>
+              <p>Labor Cost: ${quote.laborCost.toFixed(2)}</p>
+            </div>
+            <div>
+              {!conditions.noLiftNeeded && (
+                <>
+                  <p>Lift Rental: ${quote.liftRentalCost.toFixed(2)}</p>
+                  <p>Delivery Cost: ${quote.deliveryCost.toFixed(2)}</p>
+                </>
+              )}
+              {quote.srCost > 0 && (
+                <p>Special Requests: ${quote.srCost.toFixed(2)}</p>
+              )}
+              <p className="text-lg font-bold text-green-600 mt-2">
+                Total Quote: ${quote.total.toFixed(2)}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
@@ -180,9 +260,8 @@ export default function Quote() {
     width: '',
     rafterRuns: '',
     rafterHeight: '',
-    specialRequest: '',
-    srCost: '',
-    customDeliveryCost: ''
+    specialRequest: ''
+   
   });
 
   const [conditions, setConditions] = useState({
@@ -200,40 +279,115 @@ export default function Quote() {
     setShowContactForm(false);
   };
 
-  const handleSubmitQuote = async (action) => {
-    // Implementation of quote submission
+  const handleQuoteSubmit = async () => {
     try {
-      // Your quote submission logic here
+      // Generate PDF with both contact and quote data
+      const generatePDF = (quoteData, contactInfo) => {
+        const doc = new jsPDF();
+        
+        // Set PDF styling
+        doc.setFillColor(30, 41, 59);
+        doc.rect(0, 0, doc.internal.pageSize.width, doc.internal.pageSize.height, 'F');
+        doc.setTextColor(255, 255, 255);
+      
+        // Add logo
+        const logoSVG = `
+          <svg width="200" height="60" xmlns="http://www.w3.org/2000/svg">
+            <style>
+              .logo-text { fill: white; font-size: 32px; font-weight: bold; }
+              .tagline { fill: white; font-size: 14px; }
+            </style>
+            <text x="60" y="35" class="logo-text">DUSTUP</text>
+            <text x="60" y="50" class="tagline">We Take Dust Down</text>
+          </svg>
+        `;
+        
+        const svgData = 'data:image/svg+xml;base64,' + btoa(logoSVG);
+        doc.addImage(svgData, 'SVG', 20, 10, 160, 40);
+      
+        // Add contact information
+        doc.setFontSize(14);
+        doc.text(`Contact: ${contactInfo.name}`, 20, 70);
+        doc.text(`Email: ${contactInfo.email}`, 20, 80);
+        doc.text(`Phone: ${contactInfo.phone}`, 20, 90);
+        doc.text(`Company: ${contactInfo.company}`, 20, 100);
+      
+        // Add quote details
+        doc.text('Quote Details', 20, 120);
+        // Add your quote calculation details here
+        
+        return doc;
+      };
+      
+      // Send email with PDF
+      const sendQuoteEmail = async (pdf, contactInfo) => {
+        try {
+          const emailSubject = `${contactInfo.name}'s Quote Request`;
+          const emailBody = `
+            <div style="
+              background-color: rgb(30, 41, 59);
+              color: white;
+              padding: 20px;
+              font-family: Arial, sans-serif;
+              border-radius: 8px;
+            ">
+              <h1 style="color: #3B82F6; margin-bottom: 20px;">DUSTUP LTD</h1>
+              <p>We Take Dust Down</p>
+              <hr style="border-color: #3B82F6; margin: 20px 0;" />
+              <p>Quote request from ${contactInfo.name}</p>
+              <p>Company: ${contactInfo.company}</p>
+              <p>Contact: ${contactInfo.email}</p>
+              <p style="color: #69E515; margin-top: 20px;">Please find the detailed quote attached.</p>
+            </div>
+          `;
+          
+          const pdfBase64 = pdf.output('datauristring');
+          const mailtoLink = `mailto:Dustup_Official@pm.me?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}&attachment=${encodeURIComponent(pdfBase64)}`;
+          
+          window.location.href = mailtoLink;
+          return true;
+        } catch (error) {
+          console.error('Error sending email:', error);
+          throw error;
+        }
+      };
+
+      // Call the functions to generate PDF and send email
+      const pdf = generatePDF(metrics, userContact);
+      await sendQuoteEmail(pdf, userContact);
       setShowSuccess(true);
     } catch (error) {
-      console.error('Error submitting quote:', error);
-      // Handle error appropriately
+      console.error('Error generating quote:', error);
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 py-8">
+    <div className="min-h-screen bg-slate-900 py-8">
       <div className="max-w-2xl mx-auto">
-        {showContactForm ? (
+        {showContactForm && (
           <ContactFormModal 
             onSubmit={handleContactSubmit}
             onClose={() => navigate('/')}
           />
-        ) : showSuccess ? (
-          <SuccessMessage onClose={() => setShowSuccess(false)} />
-        ) : (
-          <div className="bg-white rounded-lg shadow p-8">
+        )}
+        
+        {!showContactForm && !showSuccess && userContact && (
+          <div className="max-w-2xl mx-auto p-8 bg-white rounded-lg shadow">
             <QuoteCalculator
               metrics={metrics}
               setMetrics={setMetrics}
               conditions={conditions}
               setConditions={setConditions}
-              onSubmitQuote={handleSubmitQuote}
+              onSubmitQuote={handleQuoteSubmit}
+              contactInfo={userContact}
             />
           </div>
         )}
+
+        {showSuccess && (
+          <SuccessMessage onClose={() => setShowSuccess(false)} />
+        )}
         
-        {/* Back to Home button */}
         <div className="mt-8 text-center">
           <button
             onClick={() => navigate('/')}
