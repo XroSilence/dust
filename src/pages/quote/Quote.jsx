@@ -329,8 +329,6 @@ const sendQuoteEmail = async (pdf, contactInfo) => {
       cubicArea
     };
 
-  };
-
   // Add the quote calculation result
   const quote = calculateQuote();
 
