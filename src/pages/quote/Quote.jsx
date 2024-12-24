@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { jsPDF } from 'jspdf';
 import { Calculator, Share2, FileDown, X, Home } from 'lucide-react';
-import PropTypes from 'prop-types';
+import jsPDF from 'jspdf';
+import PropTypes from 'prop-types'; // Add PropTypes import
+
 
 // Contact Form Modal Component
 // ContactFormModal Component
@@ -254,21 +255,23 @@ const sendQuoteEmail = async (pdf, contactInfo) => {
 };
 
 // Quote Calculator Component
-const QuoteCalculator = ({ metrics, setMetrics, conditions, setConditions, onSubmitQuote, contactInfo }) => {
-  const [exportStatus, setExportStatus] = useState({ type: null, message: null });
-
   const calculateQuote = () => {
     const baseArea = (parseFloat(metrics.length) || 0) * (parseFloat(metrics.width) || 0);
     const cubicArea = baseArea * (parseFloat(metrics.rafterHeight) || 0);
+
     
     let productionRate = conditions.duringOperation ? 400 : 540;
     let estimatedDays = Math.ceil(baseArea / productionRate);
     
+
     let laborCost = estimatedDays * 8 * 120;
     let liftRentalCost = 0;
     let deliveryCost = 0;
 
     if (!conditions.noLiftNeeded) {
+
+
+      // Calculate rental cost based on days
       if (estimatedDays <= 5) {
         liftRentalCost = 120 * estimatedDays;
       } else if (estimatedDays <= 20) {
@@ -312,8 +315,23 @@ const QuoteCalculator = ({ metrics, setMetrics, conditions, setConditions, onSub
         message: 'Failed to process quote. Please try again.' 
       });
     }
+
+    if (conditions.poorLiftAccess) laborCost *= 1.15;
+    if (conditions.afterHours) laborCost *= 1.25;
+
+    const srCost = parseFloat(metrics.specialRequest) || 0;
+    return {
+      estimatedDays,
+      laborCost,
+      liftRentalCost,
+      deliveryCost,
+      total: laborCost + liftRentalCost + deliveryCost,
+      cubicArea
+    };
+
   };
 
+  // Add the quote calculation result
   const quote = calculateQuote();
 
   return (
@@ -465,6 +483,7 @@ const QuoteCalculator = ({ metrics, setMetrics, conditions, setConditions, onSub
           {exportStatus.message}
         </div>
       )}
+      
     </div>
   );
 };
@@ -481,6 +500,7 @@ export default function Quote() {
     rafterRuns: '',
     rafterHeight: '',
     specialRequest: ''
+    
   });
 
   const [conditions, setConditions] = useState({
@@ -578,6 +598,7 @@ export default function Quote() {
       setShowSuccess(true);
     } catch (error) {
       console.error('Error generating quote:', error);
+
     }
   };
 
@@ -589,6 +610,7 @@ export default function Quote() {
             onSubmit={handleContactSubmit}
             onClose={() => navigate('/')}
           />
+
         )}
         
         {!showContactForm && !showSuccess && userContact && (
@@ -600,6 +622,11 @@ export default function Quote() {
             onSubmitQuote={handleQuoteSubmit}
             contactInfo={userContact}
           />
+        )}
+
+        {showSuccess && (
+          <SuccessMessage onClose={() => setShowSuccess(false)} />
+
         )}
 
         {showSuccess && (
