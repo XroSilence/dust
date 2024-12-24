@@ -302,6 +302,8 @@ const QuoteCalculator = ({ metrics, setMetrics, conditions, setConditions, onSub
         const pdf = generatePDF(quoteData, contactInfo);
         await sendQuoteEmail(pdf, contactInfo);
         setExportStatus({ type: 'success', message: 'Quote sent successfully' });
+      } else {
+        setExportStatus({ type: 'error', message: 'Invalid export format' });
       }
     } catch (error) {
       console.error('Error exporting:', error);
