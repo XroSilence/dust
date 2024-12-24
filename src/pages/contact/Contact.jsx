@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import he from 'he';
 import { ArrowLeft, Send } from 'lucide-react';
 
 export default function Contact() {
@@ -12,7 +13,10 @@ export default function Contact() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const mailtoLink = `mailto:Dustup_Official@pm.me?subject=Contact from ${formData.name}&body=${formData.message}%0D%0A%0D%0AFrom: ${formData.email}`;
+    const encodedName = he.encode(formData.name);
+    const encodedEmail = he.encode(formData.email);
+    const encodedMessage = he.encode(formData.message);
+    const mailtoLink = `mailto:Dustup_Official@pm.me?subject=Contact from ${encodedName}&body=${encodedMessage}%0D%0A%0D%0AFrom: ${encodedEmail}`;
     window.location.href = mailtoLink;
   };
 
