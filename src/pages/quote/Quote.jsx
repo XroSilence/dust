@@ -255,23 +255,22 @@ const sendQuoteEmail = async (pdf, contactInfo) => {
 };
 
 // Quote Calculator Component
-
-const QuoteCalculator = ({ metrics, setMetrics, conditions, setConditions, onSubmitQuote }) => {
   const calculateQuote = () => {
-    const baseArea = (metrics.length * metrics.width);
-    const cubicArea = baseArea * metrics.rafterHeight;
+    const baseArea = (parseFloat(metrics.length) || 0) * (parseFloat(metrics.width) || 0);
+    const cubicArea = baseArea * (parseFloat(metrics.rafterHeight) || 0);
+
     
     let productionRate = conditions.duringOperation ? 400 : 540;
     let estimatedDays = Math.ceil(baseArea / productionRate);
     
-    // Labor calculation
+
     let laborCost = estimatedDays * 8 * 120;
-    
-    // Equipment costs
     let liftRentalCost = 0;
     let deliveryCost = 0;
 
     if (!conditions.noLiftNeeded) {
+
+
       // Calculate rental cost based on days
       if (estimatedDays <= 5) {
         liftRentalCost = 120 * estimatedDays;
@@ -281,12 +280,40 @@ const QuoteCalculator = ({ metrics, setMetrics, conditions, setConditions, onSub
         liftRentalCost = 950 * Math.ceil(estimatedDays / 20);
       }
 
-      // Delivery costs
       if (conditions.standardDelivery) {
         deliveryCost = 300;
       } else if (conditions.customDelivery) {
-        deliveryCost = !isNaN(parseFloat(metrics.customDeliveryCost)) ? parseFloat(metrics.customDeliveryCost) : 0;
+        deliveryCost = parseFloat(metrics.customDeliveryCost) || 0;
       }
+    }
+
+    if (conditions.poorLiftAccess) laborCost *= 1.15;
+    if (conditions.afterHours) laborCost *= 1.25;
+
+    const srCost = parseFloat(metrics.srCost) || 0;
+    const total = laborCost + liftRentalCost + deliveryCost + srCost;
+
+    return {
+      estimatedDays,
+      laborCost,
+      liftRentalCost,
+      deliveryCost,
+      srCost,
+      total,
+      cubicArea
+    };
+  };
+
+  const handleExport = async (format) => {
+    try {
+      const quoteData = calculateQuote();
+      onSubmitQuote(quoteData);
+    } catch (error) {
+      console.error('Error exporting:', error);
+      setExportStatus({ 
+        type: 'error', 
+        message: 'Failed to process quote. Please try again.' 
+      });
     }
 
     if (conditions.poorLiftAccess) laborCost *= 1.15;
@@ -308,77 +335,125 @@ const QuoteCalculator = ({ metrics, setMetrics, conditions, setConditions, onSub
   const quote = calculateQuote();
 
   return (
-    <div className="space-y-6">
-      {/* Your existing calculator form fields */}
-      
-      <div className="space-y-4">
-        <div className="flex gap-2">
-          <button 
-            onClick={() => handleExport('pdf')}
-            className="flex items-center gap-2 px-4 py-2 bg-dustup-quote text-white rounded hover:bg-dustup-quote-hover transition-all duration-300"
-            type="button"
-            disabled={exportStatus.type === 'loading'}
-          >
-            <FileDown className={`w-4 h-4 ${exportStatus.type === 'loading' ? 'animate-rotate-wind' : ''}`} />
-            {exportStatus.type === 'loading' ? 'Processing...' : 'Export PDF'}
-          </button>
-          <button 
-            onClick={() => handleExport('email')}
-            className="flex items-center gap-2 px-4 py-2 bg-dustup-areas text-white rounded hover:bg-dustup-areas-hover transition-all duration-300"
-            type="button"
-            disabled={exportStatus.type === 'loading'}
-          >
-            <Share2 className={`w-4 h-4 ${exportStatus.type === 'loading' ? 'animate-rotate-wind' : ''}`} />
-            {exportStatus.type === 'loading' ? 'Processing...' : 'Send Email'}
-          </button>
+    <div className="max-w-2xl mx-auto p-8 bg-white rounded-lg shadow">
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex items-center gap-2">
+          <Calculator className="w-6 h-6 text-blue-500" />
+          <h1 className="text-xl font-bold text-gray-800">Quote Calculator</h1>
         </div>
-        
-        {exportStatus.message && (
-          <div className={`p-4 rounded-lg transition-all duration-300 ${
-            exportStatus.type === 'success' ? 'bg-dustup-areas/20 text-dustup-areas' :
-            exportStatus.type === 'error' ? 'bg-red-500/20 text-red-500' :
-            'bg-slate-500/20 text-slate-300'
-          }`}>
-            {exportStatus.message}
-          </div>
-        )}
       </div>
 
-      
       <div className="grid grid-cols-2 gap-6">
         <div className="space-y-4">
-          <h2 className="font-semibold">Facility Metrics</h2>
+          <h2 className="font-semibold text-gray-800">Facility Metrics</h2>
+          
           <div className="space-y-2">
-            {/* Your existing facility metric inputs */}
+            <label className="block text-sm text-gray-700">
+              Facility Length (ft)
+              <input
+                type="number"
+                value={metrics.length}
+                onChange={(e) => setMetrics(prev => ({...prev, length: e.target.value}))}
+                className="w-full mt-1 p-2 border rounded text-gray-900"
+              />
+            </label>
+
+            <label className="block text-sm text-gray-700">
+              Facility Width (ft)
+              <input
+                type="number"
+                value={metrics.width}
+                onChange={(e) => setMetrics(prev => ({...prev, width: e.target.value}))}
+                className="w-full mt-1 p-2 border rounded text-gray-900"
+              />
+            </label>
+
+            <label className="block text-sm text-gray-700">
+              Rafter Height (ft)
+              <input
+                type="number"
+                value={metrics.rafterHeight}
+                onChange={(e) => setMetrics(prev => ({...prev, rafterHeight: e.target.value}))}
+                className="w-full mt-1 p-2 border rounded text-gray-900"
+              />
+            </label>
           </div>
         </div>
 
         <div className="space-y-4">
-          <h2 className="font-semibold">Conditions</h2>
+          <h2 className="font-semibold text-gray-800">Conditions</h2>
+          
           <div className="space-y-2">
-            {/* Your existing conditions inputs */}
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={conditions.noLiftNeeded}
+                onChange={() => setConditions(prev => ({...prev, noLiftNeeded: !prev.noLiftNeeded}))}
+                className="rounded border-gray-300"
+              />
+              <span className="text-sm text-gray-700">No Lift Required</span>
+            </label>
+
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={conditions.poorLiftAccess}
+                onChange={() => setConditions(prev => ({...prev, poorLiftAccess: !prev.poorLiftAccess}))}
+                className="rounded border-gray-300"
+              />
+              <span className="text-sm text-gray-700">Poor Lift Access</span>
+            </label>
+
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={conditions.duringOperation}
+                onChange={() => {
+                  setConditions(prev => ({
+                    ...prev,
+                    duringOperation: !prev.duringOperation,
+                    afterHours: prev.duringOperation
+                  }));
+                }}
+                className="rounded border-gray-300"
+              />
+              <span className="text-sm text-gray-700">During Operation Hours</span>
+            </label>
+
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={conditions.afterHours}
+                onChange={() => {
+                  setConditions(prev => ({
+                    ...prev,
+                    afterHours: !prev.afterHours,
+                    duringOperation: prev.afterHours
+                  }));
+                }}
+                className="rounded border-gray-300"
+              />
+              <span className="text-sm text-gray-700">After Hours</span>
+            </label>
           </div>
         </div>
       </div>
 
       <div className="mt-8 p-6 bg-gray-50 rounded-lg">
-        <h2 className="text-lg font-semibold mb-4">Quote Summary</h2>
+        <h2 className="text-lg font-semibold mb-4 text-gray-800">Quote Summary</h2>
         <div className="space-y-2">
           <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
+            <div className="text-gray-700">
               <p>Total Area: {quote.cubicArea.toFixed(0)} cubic ft</p>
               <p>Estimated Duration: {quote.estimatedDays} days</p>
               <p>Labor Cost: ${quote.laborCost.toFixed(2)}</p>
             </div>
-            <div>
+            <div className="text-gray-700">
               {!conditions.noLiftNeeded && (
                 <>
                   <p>Lift Rental: ${quote.liftRentalCost.toFixed(2)}</p>
                   <p>Delivery Cost: ${quote.deliveryCost.toFixed(2)}</p>
                 </>
-              )}
-              {quote.srCost > 0 && (
-                <p>Special Requests: ${quote.srCost.toFixed(2)}</p>
               )}
               <p className="text-lg font-bold text-green-600 mt-2">
                 Total Quote: ${quote.total.toFixed(2)}
@@ -388,6 +463,27 @@ const QuoteCalculator = ({ metrics, setMetrics, conditions, setConditions, onSub
         </div>
       </div>
 
+      <div className="mt-6 flex justify-end gap-4">
+        <button
+          onClick={() => handleExport('email')}
+          className="flex items-center gap-2 px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200"
+          disabled={exportStatus.type === 'loading'}
+        >
+          <Share2 className="w-5 h-5" />
+          Send Quote
+        </button>
+      </div>
+
+      {exportStatus.message && (
+        <div className={`mt-4 p-4 rounded-lg ${
+          exportStatus.type === 'success' ? 'bg-green-100 text-green-700' :
+          exportStatus.type === 'error' ? 'bg-red-100 text-red-700' :
+          'bg-gray-100 text-gray-700'
+        }`}>
+          {exportStatus.message}
+        </div>
+      )}
+      
     </div>
   );
 };
@@ -404,7 +500,7 @@ export default function Quote() {
     rafterRuns: '',
     rafterHeight: '',
     specialRequest: ''
-   
+    
   });
 
   const [conditions, setConditions] = useState({
@@ -418,6 +514,7 @@ export default function Quote() {
   });
 
   const handleContactSubmit = (contactInfo) => {
+    console.log('Contact form submitted:', contactInfo); // Debug log
     setUserContact(contactInfo);
     setShowContactForm(false);
   };
@@ -517,19 +614,19 @@ export default function Quote() {
         )}
         
         {!showContactForm && !showSuccess && userContact && (
-          <div className="max-w-2xl mx-auto p-8 bg-white rounded-lg shadow">
+          <QuoteCalculator
+            metrics={metrics}
+            setMetrics={setMetrics}
+            conditions={conditions}
+            setConditions={setConditions}
+            onSubmitQuote={handleQuoteSubmit}
+            contactInfo={userContact}
+          />
+        )}
 
-            <QuoteCalculator
-              metrics={metrics}
-              setMetrics={setMetrics}
-              conditions={conditions}
-              setConditions={setConditions}
+        {showSuccess && (
+          <SuccessMessage onClose={() => setShowSuccess(false)} />
 
-              onSubmitQuote={handleQuoteSubmit}
-
-              contactInfo={userContact}
-            />
-          </div>
         )}
 
         {showSuccess && (
