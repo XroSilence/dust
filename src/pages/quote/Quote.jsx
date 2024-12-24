@@ -285,7 +285,7 @@ const QuoteCalculator = ({ metrics, setMetrics, conditions, setConditions, onSub
       if (conditions.standardDelivery) {
         deliveryCost = 300;
       } else if (conditions.customDelivery) {
-        deliveryCost = parseFloat(metrics.customDeliveryCost) || 0;
+        deliveryCost = !isNaN(parseFloat(metrics.customDeliveryCost)) ? parseFloat(metrics.customDeliveryCost) : 0;
       }
     }
 
