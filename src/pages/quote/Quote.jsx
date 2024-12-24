@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calculator, Share2, FileDown, X, Home } from 'lucide-react';
+import { Calculator, Share2, X, Home } from 'lucide-react';
 import jsPDF from 'jspdf';
-import PropTypes from 'prop-types'; // Add PropTypes import
+import PropTypes from 'prop-types';
 
 
 // Contact Form Modal Component
-// ContactFormModal Component
 const ContactFormModal = ({ onSubmit, onClose }) => {
   const [contactInfo, setContactInfo] = useState({
     name: '',
@@ -136,6 +135,7 @@ const ContactFormModal = ({ onSubmit, onClose }) => {
   );
 };
 
+
 // Success Message Component
 const SuccessMessage = ({ onClose }) => {
   return (
@@ -157,104 +157,96 @@ const SuccessMessage = ({ onClose }) => {
   );
 };
 
-// PDF Generation Function
-const generatePDF = (quoteData, contactInfo) => {
-  const doc = new jsPDF();
-  
-  // Set PDF styling to match website theme
-  doc.setFillColor(30, 41, 59); // slate-800 as background
-  doc.rect(0, 0, doc.internal.pageSize.width, doc.internal.pageSize.height, 'F');
-  doc.setTextColor(255, 255, 255); // white text
+// Quote Calculator Component
+const QuoteCalculator = ({ metrics, setMetrics, conditions, setConditions, onSubmitQuote, contactInfo }) => {
+  const [exportStatus, setExportStatus] = useState({ type: null, message: null });
 
-  // Add animated logo with wind effect
-  const logoSVG = `
-    <svg width="200" height="60" xmlns="http://www.w3.org/2000/svg">
-      <style>
-        .logo-text { fill: white; font-size: 32px; font-weight: bold; }
-        .tagline { fill: white; font-size: 14px; }
-        @keyframes windRotate {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(180deg); }
-        }
-        .wind-icon {
-          animation: windRotate 0.5s ease-in-out;
-          transform-origin: center;
-        }
-      </style>
-      <g class="wind-icon">
-        <path d="M20,30 L35,20 M35,20 L50,30" stroke="white" stroke-width="2" />
-      </g>
-      <text x="60" y="35" class="logo-text">DUSTUP</text>
-      <text x="60" y="50" class="tagline">We Take Dust Down</text>
-    </svg>
-  `;
-  
-  // Convert SVG to data URL and add to PDF
-  const svgData = 'data:image/svg+xml;base64,' + btoa(logoSVG);
-  doc.addImage(svgData, 'SVG', 20, 10, 160, 40);
-
-  // Add decorative line under logo
-  doc.setDrawColor(59, 130, 246); // dustup-quote color
-  doc.setLineWidth(0.5);
-  doc.line(20, 55, 190, 55);
-
-  // Add quote content
-  // ... rest of the PDF content generation ...
-
-  return doc;
-};
-
-// Email Sending Function
-const sendQuoteEmail = async (pdf, contactInfo) => {
-  try {
-    const emailSubject = `${contactInfo.name}'s Quote Request`;
-    const emailBody = `
-      <div style="
-        background-color: rgb(30, 41, 59);
-        color: white;
-        padding: 20px;
-        font-family: Arial, sans-serif;
-        border-radius: 8px;
-      ">
-        <h1 style="color: #3B82F6; margin-bottom: 20px;">DUSTUP LTD</h1>
-        <p>We Take Dust Down</p>
-        <hr style="border-color: #3B82F6; margin: 20px 0;" />
-        <p>Quote request from ${contactInfo.name}</p>
-        <p>Company: ${contactInfo.company}</p>
-        <p>Contact: ${contactInfo.email}</p>
-        <p style="color: #69E515; margin-top: 20px;">Please find the detailed quote attached.</p>
-      </div>
+  const generatePDF = (quoteData, contactInfo) => {
+    const doc = new jsPDF();
+    
+    // Set dark theme background
+    doc.setFillColor(30, 41, 59); // slate-800
+    doc.rect(0, 0, doc.internal.pageSize.width, doc.internal.pageSize.height, 'F');
+    doc.setTextColor(255, 255, 255); // white text
+    
+    // Add logo
+    const logoSVG = `
+      <svg width="200" height="60" xmlns="http://www.w3.org/2000/svg">
+        <style>
+          .logo-text { fill: white; font-size: 32px; font-weight: bold; }
+          .tagline { fill: white; font-size: 14px; }
+        </style>
+        <text x="60" y="35" class="logo-text">DUSTUP</text>
+        <text x="60" y="50" class="tagline">We Take Dust Down</text>
+      </svg>
     `;
     
-    const pdfBase64 = pdf.output('datauristring');
-    const mailtoLink = `mailto:Dustup_Official@pm.me?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}&attachment=${encodeURIComponent(pdfBase64)}`;
+    // Convert SVG to data URL and add to PDF
+    const svgData = 'data:image/svg+xml;base64,' + btoa(logoSVG);
+    doc.addImage(svgData, 'SVG', 20, 10, 160, 40);
+  
+    // Add decorative line
+    doc.setDrawColor(59, 130, 246); // dustup-quote color
+    doc.setLineWidth(0.5);
+    doc.line(20, 55, 190, 55);
+  
+    // Add contact information
+    doc.setFontSize(14);
+    doc.text(`Contact: ${contactInfo.name}`, 20, 70);
+    doc.text(`Email: ${contactInfo.email}`, 20, 80);
+    doc.text(`Phone: ${contactInfo.phone}`, 20, 90);
+    doc.text(`Company: ${contactInfo.company}`, 20, 100);
+  
+    // Add quote details
+    doc.text('Quote Details', 20, 120);
+    doc.text(`Total Area: ${quoteData.cubicArea.toFixed(0)} cubic ft`, 20, 140);
+    doc.text(`Estimated Duration: ${quoteData.estimatedDays} days`, 20, 150);
+    doc.text(`Labor Cost: $${quoteData.laborCost.toFixed(2)}`, 20, 160);
     
-    window.location.href = mailtoLink;
-    
-    const mailtoSuccess = await new Promise(resolve => {
-      const initialTime = Date.now();
-      const checkFocus = () => {
-        if (document.hasFocus()) {
-          resolve(Date.now() - initialTime < 1000);
-        } else {
-          setTimeout(checkFocus, 100);
-        }
-      };
-      setTimeout(checkFocus, 100);
-    });
-
-    if (!mailtoSuccess) {
-      throw new Error('Email client may not have opened correctly');
+    if (quoteData.liftRentalCost > 0) {
+      doc.text(`Lift Rental: $${quoteData.liftRentalCost.toFixed(2)}`, 20, 170);
+      doc.text(`Delivery Cost: $${quoteData.deliveryCost.toFixed(2)}`, 20, 180);
     }
+  
+    doc.text(`Total Quote: $${quoteData.total.toFixed(2)}`, 20, 200);
+  
+    return doc;
+  };
 
-    return true;
-  } catch (error) {
-    console.error('Error sending email:', error);
-    throw error;
-  }
-};
 
-// Quote Calculator Component
+  const sendQuoteEmail = async (pdf, contactInfo) => {
+    try {
+      const emailSubject = `${contactInfo.name}'s Quote Request`;
+      const emailBody = `
+        <div style="
+          background-color: rgb(30, 41, 59);
+          color: white;
+          padding: 20px;
+          font-family: Arial, sans-serif;
+          border-radius: 8px;
+        ">
+          <h1 style="color: #3B82F6; margin-bottom: 20px;">DUSTUP LTD</h1>
+          <p>We Take Dust Down</p>
+          <hr style="border-color: #3B82F6; margin: 20px 0;" />
+          <p>Quote request from ${contactInfo.name}</p>
+          <p>Company: ${contactInfo.company}</p>
+          <p>Contact: ${contactInfo.email}</p>
+          <p style="color: #69E515; margin-top: 20px;">Please find the detailed quote attached.</p>
+        </div>
+      `;
+      
+      const pdfBase64 = pdf.output('datauristring');
+      const mailtoLink = `mailto:Dustup_Official@pm.me?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}&attachment=${encodeURIComponent(pdfBase64)}`;
+      
+      window.location.href = mailtoLink;
+      return true;
+    } catch (error) {
+      console.error('Error sending email:', error);
+      throw error;
+    }
+  };
+
+
   const calculateQuote = () => {
     const baseArea = (parseFloat(metrics.length) || 0) * (parseFloat(metrics.width) || 0);
     const cubicArea = baseArea * (parseFloat(metrics.rafterHeight) || 0);
@@ -303,11 +295,24 @@ const sendQuoteEmail = async (pdf, contactInfo) => {
       cubicArea
     };
   };
+ 
 
   const handleExport = async (format) => {
     try {
       const quoteData = calculateQuote();
-      onSubmitQuote(quoteData);
+      
+      if (format === 'pdf') {
+        const pdf = generatePDF(quoteData, contactInfo);
+        pdf.save('quote.pdf');
+        setExportStatus({ type: 'success', message: 'PDF downloaded successfully' });
+      } 
+      else if (format === 'email') {
+        const pdf = generatePDF(quoteData, contactInfo);
+        await sendQuoteEmail(pdf, contactInfo);
+        setExportStatus({ type: 'success', message: 'Quote sent successfully' });
+      } else {
+        setExportStatus({ type: 'error', message: 'Invalid export format' });
+      }
     } catch (error) {
       console.error('Error exporting:', error);
       setExportStatus({ 
@@ -333,53 +338,53 @@ const sendQuoteEmail = async (pdf, contactInfo) => {
   const quote = calculateQuote();
 
   return (
-    <div className="max-w-2xl mx-auto p-8 bg-white rounded-lg shadow">
-      <div className="flex justify-between items-center mb-6">
+    <div className="space-y-6 bg-white text-gray-900 p-8 rounded-lg shadow-lg">
+      <div className="flex justify-between items-center">
         <div className="flex items-center gap-2">
           <Calculator className="w-6 h-6 text-blue-500" />
-          <h1 className="text-xl font-bold text-gray-800">Quote Calculator</h1>
+          <h1 className="text-xl font-bold">Quote Calculator</h1>
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-6">
         <div className="space-y-4">
-          <h2 className="font-semibold text-gray-800">Facility Metrics</h2>
+          <h2 className="font-semibold">Facility Metrics</h2>
           
           <div className="space-y-2">
-            <label className="block text-sm text-gray-700">
+            <label className="block text-sm">
               Facility Length (ft)
               <input
                 type="number"
                 value={metrics.length}
                 onChange={(e) => setMetrics(prev => ({...prev, length: e.target.value}))}
-                className="w-full mt-1 p-2 border rounded text-gray-900"
+                className="w-full mt-1 p-2 border rounded"
               />
             </label>
 
-            <label className="block text-sm text-gray-700">
+            <label className="block text-sm">
               Facility Width (ft)
               <input
                 type="number"
                 value={metrics.width}
                 onChange={(e) => setMetrics(prev => ({...prev, width: e.target.value}))}
-                className="w-full mt-1 p-2 border rounded text-gray-900"
+                className="w-full mt-1 p-2 border rounded"
               />
             </label>
 
-            <label className="block text-sm text-gray-700">
+            <label className="block text-sm">
               Rafter Height (ft)
               <input
                 type="number"
                 value={metrics.rafterHeight}
                 onChange={(e) => setMetrics(prev => ({...prev, rafterHeight: e.target.value}))}
-                className="w-full mt-1 p-2 border rounded text-gray-900"
+                className="w-full mt-1 p-2 border rounded"
               />
             </label>
           </div>
         </div>
 
         <div className="space-y-4">
-          <h2 className="font-semibold text-gray-800">Conditions</h2>
+          <h2 className="font-semibold">Conditions</h2>
           
           <div className="space-y-2">
             <label className="flex items-center gap-2">
@@ -389,7 +394,7 @@ const sendQuoteEmail = async (pdf, contactInfo) => {
                 onChange={() => setConditions(prev => ({...prev, noLiftNeeded: !prev.noLiftNeeded}))}
                 className="rounded border-gray-300"
               />
-              <span className="text-sm text-gray-700">No Lift Required</span>
+              <span className="text-sm">No Lift Required</span>
             </label>
 
             <label className="flex items-center gap-2">
@@ -399,7 +404,7 @@ const sendQuoteEmail = async (pdf, contactInfo) => {
                 onChange={() => setConditions(prev => ({...prev, poorLiftAccess: !prev.poorLiftAccess}))}
                 className="rounded border-gray-300"
               />
-              <span className="text-sm text-gray-700">Poor Lift Access</span>
+              <span className="text-sm">Poor Lift Access</span>
             </label>
 
             <label className="flex items-center gap-2">
@@ -415,7 +420,7 @@ const sendQuoteEmail = async (pdf, contactInfo) => {
                 }}
                 className="rounded border-gray-300"
               />
-              <span className="text-sm text-gray-700">During Operation Hours</span>
+              <span className="text-sm">During Operation Hours</span>
             </label>
 
             <label className="flex items-center gap-2">
@@ -431,22 +436,22 @@ const sendQuoteEmail = async (pdf, contactInfo) => {
                 }}
                 className="rounded border-gray-300"
               />
-              <span className="text-sm text-gray-700">After Hours</span>
+              <span className="text-sm">After Hours</span>
             </label>
           </div>
         </div>
       </div>
 
       <div className="mt-8 p-6 bg-gray-50 rounded-lg">
-        <h2 className="text-lg font-semibold mb-4 text-gray-800">Quote Summary</h2>
+        <h2 className="text-lg font-semibold mb-4">Quote Summary</h2>
         <div className="space-y-2">
           <div className="grid grid-cols-2 gap-4 text-sm">
-            <div className="text-gray-700">
+            <div>
               <p>Total Area: {quote.cubicArea.toFixed(0)} cubic ft</p>
               <p>Estimated Duration: {quote.estimatedDays} days</p>
               <p>Labor Cost: ${quote.laborCost.toFixed(2)}</p>
             </div>
-            <div className="text-gray-700">
+            <div>
               {!conditions.noLiftNeeded && (
                 <>
                   <p>Lift Rental: ${quote.liftRentalCost.toFixed(2)}</p>
@@ -486,6 +491,16 @@ const sendQuoteEmail = async (pdf, contactInfo) => {
   );
 };
 
+QuoteCalculator.propTypes = {
+  metrics: PropTypes.object.isRequired,
+  setMetrics: PropTypes.func.isRequired,
+  conditions: PropTypes.object.isRequired,
+  setConditions: PropTypes.func.isRequired,
+  onSubmitQuote: PropTypes.func.isRequired,
+  contactInfo: PropTypes.object.isRequired
+};
+
+
 // Main Quote Component
 export default function Quote() {
   const navigate = useNavigate();
@@ -497,8 +512,10 @@ export default function Quote() {
     width: '',
     rafterRuns: '',
     rafterHeight: '',
-    specialRequest: ''
-    
+    specialRequest: '',
+    srCost: '',
+    customDeliveryCost: ''
+
   });
 
   const [conditions, setConditions] = useState({
@@ -517,82 +534,15 @@ export default function Quote() {
     setShowContactForm(false);
   };
 
-  const handleQuoteSubmit = async () => {
+  const handleQuoteSubmit = async (quoteData) => {
     try {
-      // Generate PDF with both contact and quote data
-      const generatePDF = (quoteData, contactInfo) => {
-        const doc = new jsPDF();
-        
-        // Set PDF styling
-        doc.setFillColor(30, 41, 59);
-        doc.rect(0, 0, doc.internal.pageSize.width, doc.internal.pageSize.height, 'F');
-        doc.setTextColor(255, 255, 255);
+      // Generate PDF first
+      const pdf = generatePDF(quoteData, userContact);
       
-        // Add logo
-        const logoSVG = `
-          <svg width="200" height="60" xmlns="http://www.w3.org/2000/svg">
-            <style>
-              .logo-text { fill: white; font-size: 32px; font-weight: bold; }
-              .tagline { fill: white; font-size: 14px; }
-            </style>
-            <text x="60" y="35" class="logo-text">DUSTUP</text>
-            <text x="60" y="50" class="tagline">We Take Dust Down</text>
-          </svg>
-        `;
-        
-        const svgData = 'data:image/svg+xml;base64,' + btoa(logoSVG);
-        doc.addImage(svgData, 'SVG', 20, 10, 160, 40);
-      
-        // Add contact information
-        doc.setFontSize(14);
-        doc.text(`Contact: ${contactInfo.name}`, 20, 70);
-        doc.text(`Email: ${contactInfo.email}`, 20, 80);
-        doc.text(`Phone: ${contactInfo.phone}`, 20, 90);
-        doc.text(`Company: ${contactInfo.company}`, 20, 100);
-      
-        // Add quote details
-        doc.text('Quote Details', 20, 120);
-        // Add your quote calculation details here
-        
-        return doc;
-      };
-      
-      // Send email with PDF
-      const sendQuoteEmail = async (pdf, contactInfo) => {
-        try {
-          const emailSubject = `${contactInfo.name}'s Quote Request`;
-          const emailBody = `
-            <div style="
-              background-color: rgb(30, 41, 59);
-              color: white;
-              padding: 20px;
-              font-family: Arial, sans-serif;
-              border-radius: 8px;
-            ">
-              <h1 style="color: #3B82F6; margin-bottom: 20px;">DUSTUP LTD</h1>
-              <p>We Take Dust Down</p>
-              <hr style="border-color: #3B82F6; margin: 20px 0;" />
-              <p>Quote request from ${contactInfo.name}</p>
-              <p>Company: ${contactInfo.company}</p>
-              <p>Contact: ${contactInfo.email}</p>
-              <p style="color: #69E515; margin-top: 20px;">Please find the detailed quote attached.</p>
-            </div>
-          `;
-          
-          const pdfBase64 = pdf.output('datauristring');
-          const mailtoLink = `mailto:Dustup_Official@pm.me?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}&attachment=${encodeURIComponent(pdfBase64)}`;
-          
-          window.location.href = mailtoLink;
-          return true;
-        } catch (error) {
-          console.error('Error sending email:', error);
-          throw error;
-        }
-      };
-
-      // Call the functions to generate PDF and send email
-      const pdf = generatePDF(metrics, userContact);
+      // Then send the email with the PDF
       await sendQuoteEmail(pdf, userContact);
+      
+      // Show success message
       setShowSuccess(true);
     } catch (error) {
       console.error('Error generating quote:', error);
