@@ -1,7 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 var cors = require('cors');
-const nodemailer = require('nodemailer');
+var nodemailer = require('nodemailer');
 const multer = require('multer');
 const app = express();
 
