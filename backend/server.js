@@ -18,7 +18,7 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-app.post('/api/submit-quote', async (req, res) => {
+app.post('/api/submit-quote', async (request, res) => {
   try {
     const { contactInfo, quoteData, pdfBuffer } = req.body;
 
