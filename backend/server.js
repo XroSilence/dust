@@ -8,7 +8,7 @@ var app = express();
 app.use(cors());
 app.use(express.json());
 
-const transporter = nodemailer.createTransport({
+var transporter = nodemailer.createTransport({
   host: "your-smtp-server",
   port: 587,
   secure: false,
