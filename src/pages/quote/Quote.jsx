@@ -157,58 +157,39 @@ const SuccessMessage = ({ onClose }) => {
 };
 
 // Quote Calculator Component
-const QuoteCalculator = ({ metrics, setMetrics, conditions, setConditions, onSubmitQuote, contactInfo }) => {
+const QuoteCalculator = ({ metrics, setMetrics, conditions, setConditions, contactInfo }) => {
   const [exportStatus, setExportStatus] = useState({ type: null, message: null });
 
   const generatePDF = (quoteData, contactInfo) => {
     const doc = new jsPDF();
     
-    // Set dark theme background
-    doc.setFillColor(30, 41, 59); // slate-800
-    doc.rect(0, 0, doc.internal.pageSize.width, doc.internal.pageSize.height, 'F');
-    doc.setTextColor(255, 255, 255); // white text
+    // Header
+    doc.setFontSize(20);
+    doc.text('DUSTUP Quote', 20, 20);
     
-    // Add logo
-    const logoSVG = `
-      <svg width="200" height="60" xmlns="http://www.w3.org/2000/svg">
-        <style>
-          .logo-text { fill: white; font-size: 32px; font-weight: bold; }
-          .tagline { fill: white; font-size: 14px; }
-        </style>
-        <text x="60" y="35" class="logo-text">DUSTUP</text>
-        <text x="60" y="50" class="tagline">We Take Dust Down</text>
-      </svg>
-    `;
+    // Contact Info Section
+    doc.setFontSize(12);
+    doc.text('Contact Information:', 20, 40);
+    doc.text(`Name: ${contactInfo.name}`, 30, 50);
+    doc.text(`Email: ${contactInfo.email}`, 30, 60);
+    doc.text(`Phone: ${contactInfo.phone}`, 30, 70);
+    doc.text(`Company: ${contactInfo.company || 'N/A'}`, 30, 80);
     
-    // Convert SVG to data URL and add to PDF
-    const svgData = 'data:image/svg+xml;base64,' + btoa(logoSVG);
-    doc.addImage(svgData, 'SVG', 20, 10, 160, 40);
-  
-    // Add decorative line
-    doc.setDrawColor(59, 130, 246); // dustup-quote color
-    doc.setLineWidth(0.5);
-    doc.line(20, 55, 190, 55);
-  
-    // Add contact information
-    doc.setFontSize(14);
-    doc.text(`Contact: ${contactInfo.name}`, 20, 70);
-    doc.text(`Email: ${contactInfo.email}`, 20, 80);
-    doc.text(`Phone: ${contactInfo.phone}`, 20, 90);
-    doc.text(`Company: ${contactInfo.company}`, 20, 100);
-  
-    // Add quote details
-    doc.text('Quote Details', 20, 120);
-    doc.text(`Total Area: ${quoteData.cubicArea.toFixed(0)} cubic ft`, 20, 140);
-    doc.text(`Estimated Duration: ${quoteData.estimatedDays} days`, 20, 150);
-    doc.text(`Labor Cost: $${quoteData.laborCost.toFixed(2)}`, 20, 160);
-    
+    // Quote Details Section
+    doc.text('Quote Details:', 20, 100);
+    doc.text(`Facility Size: ${metrics.length}ft x ${metrics.width}ft`, 30, 110);
+    doc.text(`Rafter Height: ${metrics.rafterHeight}ft`, 30, 120);
+    doc.text(`Total Area: ${quoteData.cubicArea.toFixed(0)} cubic ft`, 30, 130);
+    doc.text(`Estimated Duration: ${quoteData.estimatedDays} days`, 30, 140);
+    doc.text(`Labor Cost: $${quoteData.laborCost.toFixed(2)}`, 30, 150);
+
     if (quoteData.liftRentalCost > 0) {
-      doc.text(`Lift Rental: $${quoteData.liftRentalCost.toFixed(2)}`, 20, 170);
-      doc.text(`Delivery Cost: $${quoteData.deliveryCost.toFixed(2)}`, 20, 180);
+      doc.text(`Lift Rental: $${quoteData.liftRentalCost.toFixed(2)}`, 30, 160);
+      doc.text(`Delivery Cost: $${quoteData.deliveryCost.toFixed(2)}`, 30, 170);
     }
-  
-    doc.text(`Total Quote: $${quoteData.total.toFixed(2)}`, 20, 200);
-  
+
+    doc.text(`Total Quote: $${quoteData.total.toFixed(2)}`, 30, 190);
+    
     return doc;
   };
 
@@ -234,7 +215,7 @@ const QuoteCalculator = ({ metrics, setMetrics, conditions, setConditions, onSub
       `;
       
       const pdfBase64 = pdf.output('datauristring');
-      const mailtoLink = `mailto:Dustup_Official@pm.me?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}&attachment=${encodeURIComponent(pdfBase64)}`;
+      const mailtoLink = `mailto:Dustup_Official@pm.me?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
       
       window.location.href = mailtoLink;
       return true;
@@ -245,8 +226,24 @@ const QuoteCalculator = ({ metrics, setMetrics, conditions, setConditions, onSub
   };
 
   const calculateQuote = () => {
-    const baseArea = (parseFloat(metrics.length) || 0) * (parseFloat(metrics.width) || 0);
-    const cubicArea = baseArea * (parseFloat(metrics.rafterHeight) || 0);
+    const length = parseFloat(metrics.length);
+    const width = parseFloat(metrics.width);
+    const rafterHeight = parseFloat(metrics.rafterHeight);
+
+    if (isNaN(length) || isNaN(width) || isNaN(rafterHeight)) {
+      return {
+        estimatedDays: 0,
+        laborCost: 0,
+        liftRentalCost: 0,
+        deliveryCost: 0,
+        srCost: 0,
+        total: 0,
+        cubicArea: 0
+      };
+    }
+
+    const baseArea = length * width;
+    const cubicArea = baseArea * rafterHeight;
     
     let productionRate = conditions.duringOperation ? 400 : 540;
     let estimatedDays = Math.ceil(baseArea / productionRate);
@@ -309,6 +306,37 @@ const QuoteCalculator = ({ metrics, setMetrics, conditions, setConditions, onSub
         type: 'error', 
         message: 'Failed to process quote. Please try again.' 
       });
+    }
+  };
+
+  const handleQuoteSubmit = async () => {
+    try {
+      const quoteData = calculateQuote();
+      const pdf = generatePDF(quoteData, userContact); // This already has ALL info
+      
+      // Create mailto with basic info
+      const emailSubject = `DUSTUP Quote Request - ${userContact.name}`;
+      const emailBody = `Quote request attached for ${userContact.name}
+      
+Contact Details:
+${userContact.name}
+${userContact.company || 'No company'}
+${userContact.phone}
+${userContact.email}
+
+Quote Summary:
+Total Amount: $${quoteData.total.toFixed(2)}
+`;
+
+      // Open mailto and save PDF
+      const mailtoLink = `mailto:Dustup_Official@pm.me?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+      window.location.href = mailtoLink;
+      pdf.save('DUSTUP_Quote.pdf');
+      
+      setExportStatus({ type: 'success', message: 'Quote generated and email opened' });
+    } catch (error) {
+      console.error('Error:', error);
+      setExportStatus({ type: 'error', message: 'Failed to generate quote' });
     }
   };
 
@@ -445,12 +473,11 @@ const QuoteCalculator = ({ metrics, setMetrics, conditions, setConditions, onSub
 
       <div className="mt-6 flex justify-end gap-4">
         <button
-          onClick={() => handleExport('email')}
+          onClick={handleSubmitQuote}
           className="flex items-center gap-2 px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200"
-          disabled={exportStatus.type === 'loading'}
         >
           <Share2 className="w-5 h-5" />
-          Send Quote
+          Submit Quote
         </button>
       </div>
 
@@ -472,7 +499,6 @@ QuoteCalculator.propTypes = {
   setMetrics: PropTypes.func.isRequired,
   conditions: PropTypes.object.isRequired,
   setConditions: PropTypes.func.isRequired,
-  onSubmitQuote: PropTypes.func.isRequired,
   contactInfo: PropTypes.object.isRequired
 };
 
@@ -509,18 +535,34 @@ export default function Quote() {
     setShowContactForm(false);
   };
 
-  const handleQuoteSubmit = async (quoteData) => {
+  const handleSubmitQuote = async () => {
     try {
-      // Generate PDF first
-      const pdf = generatePDF(quoteData, userContact);
+      const quoteData = calculateQuote();
+      const pdf = generatePDF(quoteData, contactInfo); // This already has ALL info
       
-      // Then send the email with the PDF
-      await sendQuoteEmail(pdf, userContact);
+      // Create mailto with basic info
+      const emailSubject = `DUSTUP Quote Request - ${contactInfo.name}`;
+      const emailBody = `Quote request attached for ${contactInfo.name}
       
-      // Show success message
-      setShowSuccess(true);
+  Contact Details:
+  ${contactInfo.name}
+  ${contactInfo.company || 'No company'}
+  ${contactInfo.phone}
+  ${contactInfo.email}
+  
+  Quote Summary:
+  Total Amount: $${quoteData.total.toFixed(2)}
+  `;
+  
+      // Open mailto and save PDF
+      const mailtoLink = `mailto:Dustup_Official@pm.me?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+      window.location.href = mailtoLink;
+      pdf.save('DUSTUP_Quote.pdf');
+      
+      setExportStatus({ type: 'success', message: 'Quote generated and email opened' });
     } catch (error) {
-      console.error('Error generating quote:', error);
+      console.error('Error:', error);
+      setExportStatus({ type: 'error', message: 'Failed to generate quote' });
     }
   };
 
