@@ -29,7 +29,7 @@ app.post('/api/submit-quote', async (req, res) => {
       text: `Quote request from ${contactInfo.name}\nTotal: $${quoteData.total}`,
       attachments: [{
         filename: 'quote.pdf',
-        content: pdfBuffer
+        content: pdfData
       }]
     });
 
