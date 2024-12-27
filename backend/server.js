@@ -1,12 +1,16 @@
-import dotenv from 'dotenv'; dotenv.config();
-var express = require('express');
-var cors = require('cors');
-var nodemailer = require('nodemailer');
-var multer = require('multer');
-var app = express();
+import dotenv from 'dotenv';
+dotenv.config();
+import express from 'express';
+import cors from 'cors';
+import nodemailer from 'nodemailer';
+import multer from 'multer';
 
+var app = express();
 app.use(cors());
 app.use(express.json());
+
+var storage = multer.memoryStorage();
+var upload = multer({ storage: storage });
 
 var transporter = nodemailer.createTransport({
   host: "your-smtp-server",
@@ -18,9 +22,10 @@ var transporter = nodemailer.createTransport({
   }
 });
 
-app.post('/api/submit-quote', async (request, res) => {
+app.post('/api/submit-quote', upload.single('pdf'), async (req, res) => {
   try {
-    const { contactInfo, quoteData, pdfBuffer } = req.body;
+    const { contactInfo, quoteData } = req.body;
+    const pdfBuffer = req.file.buffer;
 
     await transporter.sendMail({
       from: '"DUSTUP Quote System" <wetakedustdown@dustup.online>',
@@ -29,8 +34,26 @@ app.post('/api/submit-quote', async (request, res) => {
       text: `Quote request from ${contactInfo.name}\nTotal: $${quoteData.total}`,
       attachments: [{
         filename: 'quote.pdf',
-        content: pdfData
+        content: pdfBuffer
       }]
+    });
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Email error:', error);
+    res.status(500).json({ error: 'Failed to send email' });
+  }
+});
+
+app.post('/api/contact', async (req, res) => {
+  try {
+    const { name, email, message } = req.body;
+
+    await transporter.sendMail({
+      from: '"DUSTUP Contact Form" <wetakedustdown@dustup.online>',
+      to: "weTakeDustDown@dustup.online",
+      subject: `Contact Form Submission - ${name}`,
+      text: `Message from ${name} (${email}):\n\n${message}`
     });
 
     res.json({ success: true });

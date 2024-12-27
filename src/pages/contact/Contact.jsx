@@ -11,13 +11,34 @@ export default function Contact() {
     message: ''
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const encodedName = he.encode(formData.name);
     const encodedEmail = he.encode(formData.email);
     const encodedMessage = he.encode(formData.message);
-    const mailtoLink = `mailto:Dustup_Official@pm.me?subject=Contact from ${encodedName}&body=${encodedMessage}%0D%0A%0D%0AFrom: ${encodedEmail}`;
-    window.location.href = mailtoLink;
+
+    try {
+      const response = await fetch('http://localhost:3001/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: encodedName,
+          email: encodedEmail,
+          message: encodedMessage,
+        }),
+      });
+
+      if (response.ok) {
+        alert('Message sent successfully!');
+      } else {
+        alert('Failed to send message.');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('An error occurred while sending the message.');
+    }
   };
 
   return (
