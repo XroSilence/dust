@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: dustup-quote-api
+    env: node
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: EMAIL_USER
+        value: wetakedustdown@dustup.online
+      - key: EMAIL_PASS
+        sync: false

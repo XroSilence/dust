@@ -35,6 +35,8 @@
     "gh-pages": "^6.2.0",
     "globals": "^15.13.0",
     "jsdom": "^25.0.1",
+    "multer": "^1.4.5-lts.1",
+    "nodemailer": "^6.9.16",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.16",
     "vite": "^6.0.3",
