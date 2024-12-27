@@ -24,7 +24,7 @@ app.post('/api/submit-quote', async (request, res) => {
 
     await transporter.sendMail({
       from: '"DUSTUP Quote System" <wetakedustdown@dustup.online>',
-      to: "wetakedustdown@dustup.online",
+      to: "weTakeDustDown@dustup.online",
       subject: `Quote Request - ${contactInfo.name}`,
       text: `Quote request from ${contactInfo.name}\nTotal: $${quoteData.total}`,
       attachments: [{
