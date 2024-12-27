@@ -167,7 +167,7 @@ const SuccessMessage = ({ onClose }) => {
 };
 
 // Quote Calculator Component
-const QuoteCalculator = ({ metrics, setMetrics, conditions, setConditions, contactInfo }) => {
+const QuoteCalculator = ({ metrics, setMetrics, conditions, setConditions, contactInfo, setPdf }) => {
   const [exportStatus, setExportStatus] = useState({ type: null, message: null });
 
   const generatePDF = (quoteData, contactInfo) => {
@@ -201,49 +201,6 @@ const QuoteCalculator = ({ metrics, setMetrics, conditions, setConditions, conta
     doc.text(`Total Quote: $${quoteData.total.toFixed(2)}`, 30, 190);
     
     return doc;
-  };
-
-  const sendQuoteEmail = async (pdf, contactInfo) => {
-    try {
-      const emailSubject = `${contactInfo.name}'s Quote Request`;
-      const emailBody = `
-        <div style="
-          background-color: rgb(30, 41, 59);
-          color: white;
-          padding: 20px;
-          font-family: Arial, sans-serif;
-          border-radius: 8px;
-        ">
-          <h1 style="color: #3B82F6; margin-bottom: 20px;">DUSTUP LTD</h1>
-          <p>We Take Dust Down</p>
-          <hr style="border-color: #3B82F6; margin: 20px 0;" />
-          <p>Quote request from ${contactInfo.name}</p>
-          <p>Company: ${contactInfo.company}</p>
-          <p>Contact: ${contactInfo.email}</p>
-          <p style="color: #69E515; margin-top: 20px;">Please find the detailed quote attached.</p>
-        </div>
-      `;
-      
-      const pdfBuffer = pdf.output('arraybuffer');
-      const response = await fetch(`${API_URL}/api/send-email`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          emailSubject,
-          emailBody,
-          pdfBuffer: Array.from(new Uint8Array(pdfBuffer)),
-          contactInfo
-        })
-      });
-
-      if (!response.ok) throw new Error('Failed to send email');
-      return true;
-    } catch (error) {
-      console.error('Error sending email:', error);
-      throw error;
-    }
   };
 
   const calculateQuote = () => {
@@ -305,59 +262,11 @@ const QuoteCalculator = ({ metrics, setMetrics, conditions, setConditions, conta
       cubicArea
     };
   };
- 
 
-  const handleExport = async (format) => {
-    try {
-      const quoteData = calculateQuote();
-      
-      if (format === 'pdf') {
-        const pdf = generatePDF(quoteData, contactInfo);
-        pdf.save('quote.pdf');
-        setExportStatus({ type: 'success', message: 'PDF downloaded successfully' });
-      } 
-      else if (format === 'email') {
-        const pdf = generatePDF(quoteData, contactInfo);
-        await sendQuoteEmail(pdf, contactInfo);
-        setExportStatus({ type: 'success', message: 'Quote sent successfully' });
-      }
-    } catch (error) {
-      console.error('Error exporting:', error);
-      setExportStatus({ 
-        type: 'error', 
-        message: 'Failed to process quote. Please try again.' 
-      });
-    }
-  };
-
-  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
-
-  const handleQuoteSubmit = async () => {
-    try {
-      const quoteData = calculateQuote();
-      const pdf = generatePDF(quoteData, contactInfo);
-      const pdfBuffer = pdf.output('arraybuffer');
-
-      const response = await fetch(`${API_URL}/api/submit-quote`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contactInfo,
-          quoteData,
-          pdfBuffer: Array.from(new Uint8Array(pdfBuffer))
-        })
-      });
-
-      if (!response.ok) throw new Error('Failed to submit quote');
-      
-      setShowSuccess(true);
-      pdf.save('DUSTUP_Quote.pdf'); // Optional local copy
-    } catch (error) {
-      console.error('Error:', error);
-      setExportStatus({ type: 'error', message: 'Failed to submit quote' });
-    }
+  const handleGeneratePdf = () => {
+    const quoteData = calculateQuote();
+    const pdf = generatePDF(quoteData, contactInfo);
+    setPdf(pdf);
   };
 
   const quote = calculateQuote();
@@ -409,7 +318,7 @@ const QuoteCalculator = ({ metrics, setMetrics, conditions, setConditions, conta
         </div>
 
         <div className="space-y-4">
-          <h2 className="font-semibold">{t('Conditions')}</h2>
+          <h2 className="font-semibold">Conditions</h2>
           
           <div className="space-y-2">
             <label className="flex items-center gap-2">
@@ -493,11 +402,11 @@ const QuoteCalculator = ({ metrics, setMetrics, conditions, setConditions, conta
 
       <div className="mt-6 flex justify-end gap-4">
         <button
-          onClick={handleSubmitQuote}
+          onClick={handleGeneratePdf}
           className="flex items-center gap-2 px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200"
         >
           <Share2 className="w-5 h-5" />
-          Submit Quote
+          Generate PDF
         </button>
       </div>
 
@@ -519,7 +428,8 @@ QuoteCalculator.propTypes = {
   setMetrics: PropTypes.func.isRequired,
   conditions: PropTypes.object.isRequired,
   setConditions: PropTypes.func.isRequired,
-  contactInfo: PropTypes.object.isRequired
+  contactInfo: PropTypes.object.isRequired,
+  setPdf: PropTypes.func.isRequired
 };
 
 
@@ -549,6 +459,8 @@ export default function Quote() {
     selfDelivery: false
   });
 
+  const [pdf, setPdf] = useState(null);
+
   const handleContactSubmit = (contactInfo) => {
     console.log('Contact form submitted:', contactInfo); // Debug log
     setUserContact(contactInfo);
@@ -557,32 +469,31 @@ export default function Quote() {
 
   const handleSubmitQuote = async () => {
     try {
-      const quoteData = calculateQuote();
-      const pdf = generatePDF(quoteData, contactInfo); // This already has ALL info
+      if (!pdf) {
+        throw new Error('PDF not generated');
+      }
+
+      const pdfBuffer = pdf.output('arraybuffer');
+
+      const response = await fetch(`${API_URL}/api/submit-quote`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contactInfo: userContact,
+          quoteData: calculateQuote(),
+          pdfBuffer: Array.from(new Uint8Array(pdfBuffer))
+        })
+      });
+
+      if (!response.ok) throw new Error('Failed to submit quote');
       
-      // Create mailto with basic info
-      const emailSubject = `DUSTUP Quote Request - ${contactInfo.name}`;
-      const emailBody = `Quote request attached for ${contactInfo.name}
-      
-  Contact Details:
-  ${contactInfo.name}
-  ${contactInfo.company || 'No company'}
-  ${contactInfo.phone}
-  ${contactInfo.email}
-  
-  Quote Summary:
-  Total Amount: $${quoteData.total.toFixed(2)}
-  `;
-  
-      // Open mailto and save PDF
-      const mailtoLink = `mailto:Dustup_Official@pm.me?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
-      window.location.href = mailtoLink;
-      pdf.save('DUSTUP_Quote.pdf');
-      
-      setExportStatus({ type: 'success', message: 'Quote generated and email opened' });
+      setShowSuccess(true);
+      pdf.save('DUSTUP_Quote.pdf'); // Optional local copy
     } catch (error) {
       console.error('Error:', error);
-      setExportStatus({ type: 'error', message: 'Failed to generate quote' });
+      setExportStatus({ type: 'error', message: 'Failed to submit quote' });
     }
   };
 
@@ -602,8 +513,9 @@ export default function Quote() {
             setMetrics={setMetrics}
             conditions={conditions}
             setConditions={setConditions}
-            onSubmitQuote={handleQuoteSubmit}
+            onSubmitQuote={handleSubmitQuote}
             contactInfo={userContact}
+            setPdf={setPdf}
           />
         )}
 
