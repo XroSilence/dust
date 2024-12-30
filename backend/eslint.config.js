@@ -8,7 +8,7 @@ export default {
   ignorePatterns: ['dist'],
   env: {
     browser: true,
-    es2020: true,
+    es2015: true,
     node: true
   },
   extends: [
