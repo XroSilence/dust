@@ -21,11 +21,11 @@ export default [
         version: '18.2.0'
       }
     },
-    plugins: {
-      'react': require('eslint-plugin-react'),
-      'react-hooks': require('eslint-plugin-react-hooks'),
-      'react-refresh': require('eslint-plugin-react-refresh')
-    },
+    plugins: [
+      'eslint-plugin-react',
+      'eslint-plugin-react-hooks',
+      'eslint-plugin-react-refresh'
+    ],
     rules: {
       // React rules
       'react/jsx-uses-react': 'error',

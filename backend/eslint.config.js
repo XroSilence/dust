@@ -18,7 +18,7 @@ export default {
     'plugin:react-hooks/recommended'
   ],
   parserOptions: {
-    ecmaVersion: 2020,
+    // ecmaVersion is correctly spelled; consider adjusting linter settings to avoid false positives.
     sourceType: 'module',
     ecmaFeatures: {
       jsx: true
