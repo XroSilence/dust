@@ -13,8 +13,8 @@ var storage = multer.memoryStorage();
 var upload = multer({ storage: storage });
 
 var transporter = nodemailer.createTransport({
-  host: "your-smtp-server",
-  port: 587,
+  host: "127.0.0.1",
+  port: 1025,
   secure: false,
   auth: {
     user: process.env.EMAIL_USER,
@@ -22,13 +22,17 @@ var transporter = nodemailer.createTransport({
   }
 });
 
-app.post('/api/submit-quote', upload.single('pdf'), async (req, res) => {
+app.post('/api/submit-quote', upload.single('pdf'), 
+  async (req, res) => {
   try {
     const { contactInfo, quoteData } = req.body;
+    if (!req.file) {
+      return res.status(400).json({ error: 'PDF file is required' });
+    }
     const pdfBuffer = req.file.buffer;
 
     await transporter.sendMail({
-      from: '"DUSTUP Quote System" <wetakedustdown@dustup.online>',
+      from: '"DUSTUP Quote System" <weTakeDustDown@dustup.online>',
       to: "weTakeDustDown@dustup.online",
       subject: `Quote Request - ${contactInfo.name}`,
       text: `Quote request from ${contactInfo.name}\nTotal: $${quoteData.total}`,
@@ -38,10 +42,10 @@ app.post('/api/submit-quote', upload.single('pdf'), async (req, res) => {
       }]
     });
 
-    res.json({ success: true });
+    await res.json({ success: true });
   } catch (error) {
     console.error('Email error:', error);
-    res.status(500).json({ error: 'Failed to send email' });
+    await res.status(500).json({ error: 'Failed to send email' });
   }
 });
 
@@ -50,19 +54,19 @@ app.post('/api/contact', async (req, res) => {
     const { name, email, message } = req.body;
 
     await transporter.sendMail({
-      from: '"DUSTUP Contact Form" <wetakedustdown@dustup.online>',
+      from: '"DUSTUP Contact Form" <weTakeDustDown@dustup.online>',
       to: "weTakeDustDown@dustup.online",
       subject: `Contact Form Submission - ${name}`,
       text: `Message from ${name} (${email}):\n\n${message}`
     });
 
-    res.json({ success: true });
+    await res.json({ success: true });
   } catch (error) {
     console.error('Email error:', error);
-    res.status(500).json({ error: 'Failed to send email' });
+    await res.status(500).json({ error: 'Failed to send email' });
   }
 });
 
-app.listen(3001, () => {
-  console.log('Server running on port 3001');
+app.listen(1025, () => {
+  console.log('Server running on port 1025');
 });

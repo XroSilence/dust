@@ -82,7 +82,7 @@ export default function Contact() {
               required
               value={formData.message}
               onChange={(e) => setFormData({...formData, message: e.target.value})}
-              rows="4"
+              rows={4}
               className="w-full p-3 rounded-lg bg-slate-700 text-white border border-slate-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
               placeholder="How can we help?"
             />
