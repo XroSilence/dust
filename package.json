@@ -17,36 +17,33 @@
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.19.1",
     "cors": "^2.8.5",
-    "dotenv": "^16.4.7",
+    "dotenv": "16.4.7",
     "express": "4.21.2",
+    "glob": "^11.0.0",
     "he": "^1.2.0",
     "jspdf": "^2.5.2",
+    "lru-cache": "^11.0.2",
     "lucide-react": "^0.469.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-router-dom": "^7.0.2"
+    "react-router-dom": "^7.0.2",
+    "tsconfig.json": "^1.0.11",
+    "typescript": "^5.7.2"
   },
   "devDependencies": {
-    "@types/express": "^5.0.0",
-    "@types/cors": "^2.8.17",
-    "@types/he": "^1.2.3",
-    "@types/multer": "^1.4.12",
-    "@types/nodemailer": "^6.4.17",
-    "@types/react": "^18.3.12",
-    "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.20",
     "eslint-plugin-react": "^7.37.2",
     "eslint-plugin-react-hooks": "^5.1.0",
     "eslint-plugin-react-refresh": "^0.4.16",
     "globals": "^15.13.0",
-    "jsdom": "^25.0.1",
+    "gh-pages": "6.0.0",
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.9.16",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.16",
-    "vite": "^6.0.3",
-    "gh-pages": "^6.0.0"
+    "vite": "^6.0.3"
   }
 }

@@ -3,9 +3,10 @@ services:
     name: dustup-quote-api
     env: node
     buildCommand: npm install
-    startCommand: node server.cjs
+    startCommand: node server.mjs
     envVars:
       - key: EMAIL_USER
-        value: services@dustup.online
+        value: your_email_address_here
       - key: EMAIL_PASS
+        value: your_email_password_here
       
