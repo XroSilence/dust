@@ -1,9 +1,9 @@
 services:
   - type: web
     name: dustup-quote-api
-    env: node
+    runtime: node
     buildCommand: npm install
-    startCommand: node server.mjs
+    startCommand: node ../dist/server.js
     envVars:
       - key: EMAIL_USER
         value: your_email_address_here

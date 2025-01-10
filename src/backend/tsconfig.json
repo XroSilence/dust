@@ -1,17 +1,25 @@
 {
     "compilerOptions": {
-        "target": "ES2022",
+        "jsx": "react",
+        "target": "ESNext",
         "module": "NodeNext",
         "moduleResolution": "NodeNext",
-        "outDir": "dist",
-        "rootDir": "./",
-        "types": ["node"],
+        "outDir": "dist",          // Output compiled files to the dist directory outside backend
+        "rootDir": "./",              // Set rootDir to the current project directory
+        "baseUrl": "./",              // Base URL for module resolution
         "strict": true,
         "esModuleInterop": true,
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
-        "resolveJsonModule": true
+        "resolveJsonModule": true,
+        "noEmit": true,
+        "allowJs": true,
+        "declaration": true,
+        "sourceMap": true,    
+        "checkJs": true,    
+
+
     },
-    "include": ["./**/**/*{.ts, .tsx}"],
-    "exclude": ["node_modules"]
+    "include": ["./*.ts", "./*.jsx", "./*.js",],   // Include all .ts and .tsx files in current directory and subdirectories
+    "exclude": ["node_modules", "dist"] // Exclude node_modules and dist directories
 }

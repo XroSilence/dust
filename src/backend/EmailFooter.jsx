@@ -1,6 +1,6 @@
-import React from 'react';
-npm install lucide-react
-import './styles.css';
+import React from "react";
+import "./styles.css";
+import { Wind } from "lucide-react";
 
 const EmailFooter = () => {
   return (
@@ -10,9 +10,9 @@ const EmailFooter = () => {
       </div>
       <div>
         <p className="custom-bold text-white">
-          <a href="https://dustup.online">DUSTUP LTD</a>
+          <a href="https://dustup.online"> DUSTUP LTD </a>
         </p>
-        <p className="custom-font text-sm text-white">We Take Dust Down.</p>
+        <p className="custom-font text-sm text-white"> We Take Dust Down.</p>
       </div>
     </div>
   );
