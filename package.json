@@ -12,12 +12,12 @@
     "dev": "vite",
     "build": "vite build",
     "serve": "vite preview",
-    "start": "node server.js",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
     "@typescript-eslint/eslint-plugin": "^8.19.1",
+    "axios": "^1.7.9",
     "cors": "^2.8.5",
     "dotenv": "16.4.7",
     "express": "4.21.2",
@@ -38,12 +38,12 @@
     "eslint-plugin-react": "^7.37.2",
     "eslint-plugin-react-hooks": "^5.1.0",
     "eslint-plugin-react-refresh": "^0.4.16",
-    "globals": "^15.13.0",
     "gh-pages": "6.0.0",
+    "globals": "^15.13.0",
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.9.16",
     "postcss": "^8.4.49",
-    "tailwindcss": "^3.4.16",
+    "tailwindcss": "^3.4.17",
     "vite": "^6.0.3"
   }
 }
