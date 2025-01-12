@@ -1,6 +1,7 @@
+// @ts-nocheck
 import React from "react";
 import "./styles.css";
-import { Wind } from "lucide-react";
+import {Wind} from "lucide-react";
 
 const EmailFooter = () => {
   return (

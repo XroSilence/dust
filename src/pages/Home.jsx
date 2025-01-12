@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import React from 'react';
 import { ArrowUpRight, Building2, ClipboardCheck, MapPin, Phone, Wind } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';

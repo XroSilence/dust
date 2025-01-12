@@ -1,18 +1,11 @@
 import * as dotenv from "dotenv";
 dotenv.config();
 import express, { Express } from "express";
-import cors from "cors";
 import nodemailer from "nodemailer";
 import multer from "multer";
 
-const app: Express = express();
-app.use(
-  cors({
-    origin: "http://localhost:3000", // Update with your frontend URL
-    methods: ["GET", "POST"],
-    credentials: true,
-  })
-);
+
+export const app: Express = express();
 app.use(express.json());
 
 const storage = multer.memoryStorage();
@@ -71,6 +64,8 @@ app.post(
   }
 );
 
-app.listen(3001, () => console.log("Server listening on port 3001"));
+
+app.listen(3000, () => console.log("Server listening on port 3000"));
 
 export default app;
+

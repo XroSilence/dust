@@ -6,7 +6,6 @@ services:
     startCommand: node ../dist/server.js
     envVars:
       - key: EMAIL_USER
-        value: your_email_address_here
       - key: EMAIL_PASS
-        value: your_email_password_here
+        
       
