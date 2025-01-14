@@ -1,8 +1,8 @@
 import React, { useState } from 'react'; // Import React library and useState hook
-import axios from 'api/axiosConfig.js'; // Import axios library
 import he from 'he'; // Import he library
 import { useNavigate } from 'react-router'; // Import useNavigate hook from react-router
 import { Send, ArrowLeft } from 'lucide-react'; // Import Send and ArrowLeft icons from lucide-react
+import axios from '../../axiosConfig'; // Import axios library
 
 function Contact() {
   const navigate = useNavigate(); // Initialize navigate hook
@@ -19,7 +19,7 @@ function Contact() {
     const encodedMessage = he.encode(formData.message);  // Encode the message
 
     try {
-      const response = await axios.post('/contact', { // Updated endpoint to '/contact'
+      const response =  axios.post('/contact', { // Ensure the endpoint is correct
         name: encodedName,
         email: encodedEmail,
         message: encodedMessage,

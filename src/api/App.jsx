@@ -6,7 +6,7 @@ import Services from './pages/services/Services';
 import Contact from './pages/contact/Contact';
 import Areas from './pages/areas/Areas';
 
-App; // Import
+
 function App() { // Create a functional component named App
   return (
     <div className="app"> {/* Create a div with a class of app */}

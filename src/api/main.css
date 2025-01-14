@@ -1,0 +1,45 @@
+
+.dustup-quote {
+    color: #3B82F6;
+}
+
+.dustup-quote-hover:hover {
+    color: #2563EB;
+}
+
+.dustup-services {
+    color: #6366F1;
+}
+
+.dustup-services-hover:hover {
+    color: #4F46E5;
+}
+
+.dustup-contact {
+    color: #A855F7;
+}
+
+.dustup-contact-hover:hover {
+    color: #9333EA;
+}
+
+.dustup-areas {
+    color: #69E515;
+}
+
+.dustup-areas-hover:hover {
+    color: #5ACC13;
+}
+
+@keyframes rotate-wind {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(180deg);
+    }
+}
+
+.rotate-wind {
+    animation: rotate-wind 0.5s ease-in-out;
+}

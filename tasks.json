@@ -1,0 +1,83 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "npm",
+            "script": "build",
+            "group": "build",
+            "problemMatcher": [
+                "$eslint-stylish"
+            ],
+            "label": "npm: build",
+            "presentation": {
+                "reveal": "silent"
+            }
+        },
+        {
+            "label": "build-root",
+            "type": "npm",
+            "script": "build",
+            "group": "build",
+            "problemMatcher": [
+                "$eslint-stylish"
+            ],
+            "presentation": {
+                "reveal": "silent"
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            }
+        },
+        {
+            "label": "build-backend",
+            "type": "npm",
+            "script": "build",
+            "group": "build",
+            "problemMatcher": [
+                "$eslint-stylish"
+            ],
+            "presentation": {
+                "reveal": "silent"
+            },
+            "options": {
+                "cwd": "${workspaceFolder}/backend"
+            }
+        },
+        {
+            "label": "build-all",
+            "dependsOn": [
+                "build-root",
+                "build-backend"
+            ],
+            "group": "build",
+            "presentation": {
+                "reveal": "silent"
+            }
+        },
+        {
+            "type": "shell",
+            "label": "npm install",
+            "command": "npm",
+            "args": [
+                "install",
+                "--legacy-peer-deps"
+            ],
+            "presentation": {
+                "reveal": "silent"
+            }
+        },
+        {
+            "type": "shell",
+            "label": "npm audit fix --force",
+            "command": "npm",
+            "args": [
+                "audit",
+                "fix",
+                "--force"
+            ],
+            "presentation": {
+                "reveal": "silent"
+            }
+        }
+    ]
+}

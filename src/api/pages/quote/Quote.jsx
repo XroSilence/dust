@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Calculator, Share2, X, Home } from 'lucide-react';
-import jsPDF from 'jspdf';
 import PropTypes from 'prop-types';
+import axios from '../../axiosConfig';
 
 // Contact Form Modal Component
 const ContactFormModal = ({ onSubmit, onClose }) => {
@@ -43,9 +43,21 @@ const ContactFormModal = ({ onSubmit, onClose }) => {
     }
   };
 
-  const handleFormSubmit = () => {
+  const handleFormSubmit = async () => {
     if (handleFormValidation()) {
-      onSubmit(contactInfo);
+      try {
+        const response = await axios.post('api/quote', {
+          contactInfo: userContact,
+          quoteData: calculateQuote(),
+        });
+
+        if (response.status !== 200) throw new Error('Failed to submit quote');
+
+        setShowSuccess(true);
+      } catch (error) {
+        console.error('Error:', error);
+        setExportStatus({ type: 'error', message: 'Failed to submit quote' });
+      }
     }
   };
 
@@ -81,6 +93,8 @@ const ContactFormModal = ({ onSubmit, onClose }) => {
                 errors.name ? 'border-red-500' : 'border-gray-300'
               } focus:ring-2 focus:ring-dustup-quote focus:border-dustup-quote`}
               placeholder="Enter your name"
+              autoComplete='name'
+              id='name'
             />
             {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
           </div>
@@ -99,6 +113,8 @@ const ContactFormModal = ({ onSubmit, onClose }) => {
                 errors.email ? 'border-red-500' : 'border-gray-300'
               } focus:ring-2 focus:ring-dustup-quote focus:border-dustup-quote`}
               placeholder="Enter your email"
+              autoComplete='email'
+              id='email'
             />
             {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
           </div>
@@ -117,6 +133,8 @@ const ContactFormModal = ({ onSubmit, onClose }) => {
                 errors.phone ? 'border-red-500' : 'border-gray-300'
               } focus:ring-2 focus:ring-dustup-quote focus:border-dustup-quote`}
               placeholder="Enter your phone number"
+              autoComplete='tel'
+              id='phone'
             />
             {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
           </div>
@@ -129,12 +147,14 @@ const ContactFormModal = ({ onSubmit, onClose }) => {
               onChange={(e) => setContactInfo(prev => ({...prev, company: e.target.value}))}
               className="mt-1 w-full p-3 rounded-lg border text-gray-900 border-gray-300 focus:ring-2 focus:ring-dustup-quote focus:border-dustup-quote"
               placeholder="Enter your company name"
+              autoComplete='organization'
+              id='company'
             />
           </div>
           
           <button
             type="submit"
-            className="w-full bg-dustup-quote text-white font-semibold py-3 px-6 rounded-lg hover:bg-dustup-quote-hover transition-colors duration-200"
+            className="w-full bg-dustup-quote text-black font-semibold py-3 px-6 rounded-lg hover:bg-dustup-quote-hover transition-colors duration-200"
           >
             Continue to Calculator
           </button>
@@ -144,7 +164,6 @@ const ContactFormModal = ({ onSubmit, onClose }) => {
   );
 };
 
-
 // Success Message Component
 const SuccessMessage = ({ onClose }) => {
   return (
@@ -152,11 +171,11 @@ const SuccessMessage = ({ onClose }) => {
       <div className="bg-white rounded-lg p-8 max-w-md w-full text-center">
         <h2 className="text-2xl font-bold text-green-600 mb-4">Quote Submitted!</h2>
         <p className="text-gray-600 mb-6">
-          Great, we will review the details and be in touch within 48 hours at the latest.
+          Great, we will review the details and be in touch soon!
         </p>
         <button
           onClick={onClose}
-          className="bg-dustup-quote text-white font-semibold py-2 px-6 rounded-lg hover:bg-dustup-quote-hover transition-colors duration-200"
+          className="bg-dustup-quote text-primary-green font-semibold py-2 px-6 rounded-lg hover:bg-dustup-quote-hover transition-colors duration-200"
           type="button"
         >
           Close
@@ -169,39 +188,6 @@ const SuccessMessage = ({ onClose }) => {
 // Quote Calculator Component
 const QuoteCalculator = ({ metrics, setMetrics, conditions, setConditions, contactInfo, setPdf }) => {
   const [exportStatus, setExportStatus] = useState({ type: null, message: null });
-
-  const generatePDF = (quoteData, contactInfo) => {
-    const doc = new jsPDF();
-    
-    // Header
-    doc.setFontSize(20);
-    doc.text('DUSTUP Quote', 20, 20);
-    
-    // Contact Info Section
-    doc.setFontSize(12);
-    doc.text('Contact Information:', 20, 40);
-    doc.text(`Name: ${contactInfo.name}`, 30, 50);
-    doc.text(`Email: ${contactInfo.email}`, 30, 60);
-    doc.text(`Phone: ${contactInfo.phone}`, 30, 70);
-    doc.text(`Company: ${contactInfo.company || 'N/A'}`, 30, 80);
-    
-    // Quote Details Section
-    doc.text('Quote Details:', 20, 100);
-    doc.text(`Facility Size: ${metrics.length}ft x ${metrics.width}ft`, 30, 110);
-    doc.text(`Rafter Height: ${metrics.rafterHeight}ft`, 30, 120);
-    doc.text(`Total Area: ${quoteData.cubicArea.toFixed(0)} cubic ft`, 30, 130);
-    doc.text(`Estimated Duration: ${quoteData.estimatedDays} days`, 30, 140);
-    doc.text(`Labor Cost: $${quoteData.laborCost.toFixed(2)}`, 30, 150);
-
-    if (quoteData.liftRentalCost > 0) {
-      doc.text(`Lift Rental: $${quoteData.liftRentalCost.toFixed(2)}`, 30, 160);
-      doc.text(`Delivery Cost: $${quoteData.deliveryCost.toFixed(2)}`, 30, 170);
-    }
-
-    doc.text(`Total Quote: $${quoteData.total.toFixed(2)}`, 30, 190);
-    
-    return doc;
-  };
 
   const calculateQuote = () => {
     const length = parseFloat(metrics.length);
@@ -263,10 +249,20 @@ const QuoteCalculator = ({ metrics, setMetrics, conditions, setConditions, conta
     };
   };
 
-  const handleGeneratePdf = () => {
-    const quoteData = calculateQuote();
-    const pdf = generatePDF(quoteData, contactInfo);
-    setPdf(pdf);
+  const handleSubmitQuote = async () => {
+    try {
+      const response = await axios.post('/api/quote', {
+        contactInfo,
+        quoteData: calculateQuote(),
+      });
+
+      if (response.status !== 200) throw new Error('Failed to submit quote');
+
+      setExportStatus({ type: 'success', message: 'Quote submitted successfully!' });
+    } catch (error) {
+      console.error('Error:', error);
+      setExportStatus({ type: 'error', message: 'Failed to submit quote' });
+    }
   };
 
   const quote = calculateQuote();
@@ -402,11 +398,11 @@ const QuoteCalculator = ({ metrics, setMetrics, conditions, setConditions, conta
 
       <div className="mt-6 flex justify-end gap-4">
         <button
-          onClick={handleGeneratePdf}
+          onClick={handleSubmitQuote}
           className="flex items-center gap-2 px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200"
         >
           <Share2 className="w-5 h-5" />
-          Generate PDF
+          Submit Quote
         </button>
       </div>
 
@@ -431,7 +427,6 @@ QuoteCalculator.propTypes = {
   contactInfo: PropTypes.object.isRequired,
   setPdf: PropTypes.func.isRequired
 };
-
 
 // Main Quote Component
 export default function Quote() {
@@ -467,36 +462,6 @@ export default function Quote() {
     setShowContactForm(false);
   };
 
-  const handleSubmitQuote = async () => {
-    try {
-      if (!pdf) {
-        throw new Error('PDF not generated');
-      }
-
-      const pdfBuffer = pdf.output('arraybuffer');
-
-      const response = await fetch(`${API_URL}/api/submit-quote`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contactInfo: userContact,
-          quoteData: calculateQuote(),
-          pdfBuffer: Array.from(new Uint8Array(pdfBuffer))
-        })
-      });
-
-      if (!response.ok) throw new Error('Failed to submit quote');
-      
-      setShowSuccess(true);
-      pdf.save('DUSTUP_Quote.pdf'); // Optional local copy
-    } catch (error) {
-      console.error('Error:', error);
-      setExportStatus({ type: 'error', message: 'Failed to submit quote' });
-    }
-  };
-
   return (
     <div className="min-h-screen bg-slate-900 py-8">
       <div className="max-w-2xl mx-auto">
@@ -513,7 +478,6 @@ export default function Quote() {
             setMetrics={setMetrics}
             conditions={conditions}
             setConditions={setConditions}
-            onSubmitQuote={handleSubmitQuote}
             contactInfo={userContact}
             setPdf={setPdf}
           />
