@@ -1,24 +1,45 @@
-import React from 'react'; 
+// src/App.jsx
+import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
 import Quote from './pages/quote/Quote';
 import Services from './pages/services/Services';
 import Contact from './pages/contact/Contact';
 import Areas from './pages/areas/Areas';
+import AdminLogin from './pages/admin/AdminLogin';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import SetupTwoFactor from './pages/admin/SetupTwoFactor';
+import ProtectedRoute from './components/ProtectedRoute';
 
-
-function App() { // Create a functional component named App
+function App() {
   return (
-    <div className="app"> {/* Create a div with a class of app */}
-      <Routes> {/* Use the Routes component */}
-        <Route path="/" element={<Home />} />  {/* Use the Route component with the path prop set to "/" and the element prop set to the Home component */}
-        <Route path="/quote" element={<Quote />} /> {/* Use the Route component with the path prop set to "/quote" and the element prop set to the Quote component */}
-        <Route path="/services" element={<Services />} /> {/* Use the Route component with the path prop set to "/services" and the element prop set to the Services component */}
-        <Route path="/contact" element={<Contact />} /> {/* Use the Route component with the path prop set to "/contact" and the element prop set to the Contact component */}
-        <Route path="/areas" element={<Areas />} /> {/* Use the Route component with the path prop set to "/areas" and the element prop set to the Areas component */}
+    <div className="app">
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/quote" element={<Quote />} />
+        <Route path="/services" element={<Services />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/areas" element={<Areas />} />
+        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route
+          path="/admin/setup-2fa"
+          element={
+            <ProtectedRoute>
+              <SetupTwoFactor />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/dashboard"
+          element={
+            <ProtectedRoute requireTwoFactor={true}>
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </div>
   );
 }
 
-export default App; // Export the App component
+export default App;

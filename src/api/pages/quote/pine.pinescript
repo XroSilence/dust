@@ -1,0 +1,19 @@
+// Bollinger Bands
+var color = {
+	blue: "#0000FF",
+	red: "#FF0000",
+	new: function(color, alpha) {
+		// Assuming this function returns a color with the specified alpha
+		return color;
+	}
+};
+var col_bbBasis = color.blue // Initialize col_bbBasis with a color value
+var col_bbLower = color.red  // Initialize col_bbLower with a color value
+	none int
+}{none: 0}
+var col_bbLower = color.red  // Initialize col_bbLower with a color value
+plot(bb_basis, "BB Middle", color=col_bbBasis, style=plot_style, linewidth=bb_lineWidth)
+plot(bb_basis, "BB Middle", color=col_bbBasis, style=plot_style, linewidth=bb_lineWidth)
+plot(bb_upper, "BB Upper",  color=col_bbUpper, style=plot_style, linewidth=bb_lineWidth)
+plot(bb_lower, "BB Lower",  color=col_bbLower, style=plot_style, linewidth=bb_lineWidth)
+fill(plot(bb_upper, display=display.none), plot(bb_lower, display=display.none), color=color.new(col_bbBasis, 90))

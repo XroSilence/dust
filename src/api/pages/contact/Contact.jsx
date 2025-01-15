@@ -19,7 +19,7 @@ function Contact() {
     const encodedMessage = he.encode(formData.message);  // Encode the message
 
     try {
-      const response =  axios.post('/contact', { // Ensure the endpoint is correct
+      const response = await axios.post('/api/contact', { // Ensure the endpoint is correct
         name: encodedName,
         email: encodedEmail,
         message: encodedMessage,

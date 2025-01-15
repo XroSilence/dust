@@ -10,7 +10,8 @@ const ContactFormModal = ({ onSubmit, onClose }) => {
     name: '',
     email: '',
     phone: '',
-    company: ''
+    company: '',
+    message: ''
   });
 
   const [errors, setErrors] = useState({});
@@ -46,17 +47,14 @@ const ContactFormModal = ({ onSubmit, onClose }) => {
   const handleFormSubmit = async () => {
     if (handleFormValidation()) {
       try {
-        const response = await axios.post('api/quote', {
-          contactInfo: userContact,
-          quoteData: calculateQuote(),
-        });
+        const response = await axios.post('/api/contact', contactInfo);
 
-        if (response.status !== 200) throw new Error('Failed to submit quote');
+        if (response.status !== 200) throw new Error('Failed to submit contact info');
 
-        setShowSuccess(true);
+        onSubmit(contactInfo);
       } catch (error) {
         console.error('Error:', error);
-        setExportStatus({ type: 'error', message: 'Failed to submit quote' });
+        setErrors({ form: 'Failed to submit contact info' });
       }
     }
   };
@@ -151,10 +149,21 @@ const ContactFormModal = ({ onSubmit, onClose }) => {
               id='company'
             />
           </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Message</label>
+            <textarea
+              value={contactInfo.message}
+              onChange={(e) => setContactInfo(prev => ({...prev, message: e.target.value}))}
+              className="mt-1 w-full p-3 rounded-lg border text-gray-900 border-gray-300 focus:ring-2 focus:ring-dustup-quote focus:border-dustup-quote"
+              placeholder="Enter your message"
+              id='message'
+            />
+          </div>
           
           <button
             type="submit"
-            className="w-full bg-dustup-quote text-black font-semibold py-3 px-6 rounded-lg hover:bg-dustup-quote-hover transition-colors duration-200"
+            className="w-full bg-dustup-quote text-primary-green font-semibold py-3 px-6 rounded-lg hover:group-aria-expanded:bottom-auto hover:bg-dustup-quote-hover transition-colors duration-200"
           >
             Continue to Calculator
           </button>
@@ -164,31 +173,8 @@ const ContactFormModal = ({ onSubmit, onClose }) => {
   );
 };
 
-// Success Message Component
-const SuccessMessage = ({ onClose }) => {
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-8 max-w-md w-full text-center">
-        <h2 className="text-2xl font-bold text-green-600 mb-4">Quote Submitted!</h2>
-        <p className="text-gray-600 mb-6">
-          Great, we will review the details and be in touch soon!
-        </p>
-        <button
-          onClick={onClose}
-          className="bg-dustup-quote text-primary-green font-semibold py-2 px-6 rounded-lg hover:bg-dustup-quote-hover transition-colors duration-200"
-          type="button"
-        >
-          Close
-        </button>
-      </div>
-    </div>
-  );
-};
-
 // Quote Calculator Component
-const QuoteCalculator = ({ metrics, setMetrics, conditions, setConditions, contactInfo, setPdf }) => {
-  const [exportStatus, setExportStatus] = useState({ type: null, message: null });
-
+const QuoteCalculator = ({ metrics, setMetrics, conditions, setConditions, contactInfo }) => {
   const calculateQuote = () => {
     const length = parseFloat(metrics.length);
     const width = parseFloat(metrics.width);
@@ -208,10 +194,10 @@ const QuoteCalculator = ({ metrics, setMetrics, conditions, setConditions, conta
 
     const baseArea = length * width;
     const cubicArea = baseArea * rafterHeight;
-    
+
     let productionRate = conditions.duringOperation ? 400 : 540;
     let estimatedDays = Math.ceil(baseArea / productionRate);
-    
+
     let laborCost = estimatedDays * 8 * 120;
     let liftRentalCost = 0;
     let deliveryCost = 0;
@@ -248,6 +234,8 @@ const QuoteCalculator = ({ metrics, setMetrics, conditions, setConditions, conta
       cubicArea
     };
   };
+
+  const [exportStatus, setExportStatus] = useState({ type: '', message: '' });
 
   const handleSubmitQuote = async () => {
     try {
@@ -419,15 +407,6 @@ const QuoteCalculator = ({ metrics, setMetrics, conditions, setConditions, conta
   );
 };
 
-QuoteCalculator.propTypes = {
-  metrics: PropTypes.object.isRequired,
-  setMetrics: PropTypes.func.isRequired,
-  conditions: PropTypes.object.isRequired,
-  setConditions: PropTypes.func.isRequired,
-  contactInfo: PropTypes.object.isRequired,
-  setPdf: PropTypes.func.isRequired
-};
-
 // Main Quote Component
 export default function Quote() {
   const navigate = useNavigate();
@@ -454,8 +433,6 @@ export default function Quote() {
     selfDelivery: false
   });
 
-  const [pdf, setPdf] = useState(null);
-
   const handleContactSubmit = (contactInfo) => {
     console.log('Contact form submitted:', contactInfo); // Debug log
     setUserContact(contactInfo);
@@ -479,24 +456,26 @@ export default function Quote() {
             conditions={conditions}
             setConditions={setConditions}
             contactInfo={userContact}
-            setPdf={setPdf}
           />
         )}
 
         {showSuccess && (
-          <SuccessMessage onClose={() => setShowSuccess(false)} />
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-8 max-w-md w-full text-center">
+              <h2 className="text-2xl font-bold text-green-600 mb-4">Quote Submitted!</h2>
+              <p className="text-gray-600 mb-6">
+                Great, we will review the details and be in touch soon!
+              </p>
+              <button
+                onClick={() => setShowSuccess(false)}
+                className="bg-dustup-quote text-primary-green font-semibold py-2 px-6 rounded-lg hover:bg-dustup-quote-hover transition-colors duration-200"
+                type="button"
+              >
+                Close
+              </button>
+            </div>
+          </div>
         )}
-        
-        <div className="mt-8 text-center">
-          <button
-            onClick={() => navigate('/')}
-            className="inline-flex items-center gap-2 px-6 py-3 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-colors duration-200"
-            type="button"
-          >
-            <Home className="w-5 h-5" />
-            Back to Home
-          </button>
-        </div>
       </div>
     </div>
   );

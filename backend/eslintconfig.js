@@ -22,7 +22,7 @@ export default {
     ecmaFeatures: {
       jsx: true
     },
-    project: "./jsconfig.json"
+    project: "./tsconfig.json"
   },
 
   settings: {
