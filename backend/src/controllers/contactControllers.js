@@ -2,7 +2,6 @@
 import nodemailer from 'nodemailer';
 import path from 'path';
 import fs from 'fs';
-import { generatePDF } from '../utils/pdfGenerator.js';
 
 export const sendContactEmail = async (req, res) => {
   const { name, email, message } = req.body;
@@ -55,7 +54,7 @@ export const sendQuoteEmail = async (req, res) => {
 
   try {
     // Generate the PDF based on the received data
-    const pdfBuffer = await generatePDF(contactInfo, metrics, conditions);
+
 
     // Path to your email template
     const templatePath = path.join(__dirname, '../templates/quoteEmailTemplate.html');
@@ -91,7 +90,7 @@ export const sendQuoteEmail = async (req, res) => {
         },
         {
           filename: 'DUSTUP_Quote.pdf',
-          content: pdfBuffer,
+         
           contentType: 'application/pdf',
         },
       ],

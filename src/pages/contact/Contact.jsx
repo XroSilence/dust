@@ -1,10 +1,14 @@
 import React, { useState } from 'react'; // Import React library and useState hook
+import ReCAPTCHA from 'react-google-recaptcha';
 import he from 'he'; // Import he library
 import { useNavigate } from 'react-router'; // Import useNavigate hook from react-router
 import { Send, ArrowLeft } from 'lucide-react'; // Import Send and ArrowLeft icons from lucide-react
-import axios from '../../axiosConfig'; // Import axios library
+import axios from '../../utils/axiosConfig.js'; // Import axios library with explicit file extension
 
 function Contact() {
+  const handleRecaptchaChange = (value) => {
+    console.log('Captcha value:', value);
+  };
   const navigate = useNavigate(); // Initialize navigate hook
   const [formData, setFormData] = useState({ 
     name: '',
@@ -80,7 +84,7 @@ function Contact() {
               id="message"
               name="message"
               required
-              value={formData.message} // Update value to formData.message
+              value={formData.message}
               onChange={(e) => setFormData({ ...formData, message: e.target.value })}
               rows={4}
               className="w-full p-3 rounded-lg bg-slate-700 text-white border border-slate-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
@@ -89,7 +93,7 @@ function Contact() {
           </div>
 
           <button
-            type="submit" // Add type="submit" to the button
+            type="submit"
             className="inline-flex items-center gap-2 bg-blue-500 hover:bg-blue-400 text-white font-semibold py-3 px-8 rounded-lg shadow-lg hover:shadow-[0_0_15px] hover:shadow-blue-500 transition-all duration-300"
           >
             <Send className="w-5 h-5" />

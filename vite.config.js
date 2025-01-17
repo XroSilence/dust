@@ -6,20 +6,40 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: true,
-    manifest: true, // Enable manifest
+    manifest: true,
     rollupOptions: {
-      treeshake: true,
       output: {
-        manualChunks(id) {
-          if (id.includes('node_modules')) {
-            return 'vendor';
-          }
-          // Split pages into their own chunks
-          if (id.includes('pages/')) {
-            return 'pages';
-          }
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'ui-components': ['lucide-react'],
+          'utils': ['axios', 'jspdf']
         }
       }
     }
+  },
+
+  server: {
+            proxy: {
+              '/api': {
+                target: 'http://localhost:3001',
+                changeOrigin: true,
+                secure: false
+              },
+              '/api/quote': {
+                target: 'http://localhost:3001',
+                changeOrigin: true,
+                secure: false
+              },
+              '/api/contact': {
+                target: 'http://localhost:3001',
+                changeOrigin: true,
+                secure: false
+              }
+            }
+          },
+   
+  optimizeDeps: {
+    exclude: ['express', 'multer', 'nodemailer', 'http-proxy-middleware']
   }
-});
+})
+     

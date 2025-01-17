@@ -47,7 +47,7 @@ export default {
       }
     }
   ],
-  ignorePatterns: ["dist/**", "node_modules/**",],
+  ignorePatterns: ["dist/*", "node_modules/*",],
   rules: {
     // Custom rules can be added here
   }

@@ -1,8 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Calculator, Share2, X, Home } from 'lucide-react';
-import PropTypes from 'prop-types';
-import axios from '../../axiosConfig';
+import axios from '../../utils/axiosConfig.js';
+import ReCAPTCHA from 'react-google-recaptcha'; // install this: npm install react-google-recaptcha
+
+
+// Simple rate limit (basic example, for real usage consider a library)
+let lastSubmitTime = 0;
+const RATE_LIMIT_DELAY = 5000; // ms
 
 // Contact Form Modal Component
 const ContactFormModal = ({ onSubmit, onClose }) => {
@@ -15,6 +20,10 @@ const ContactFormModal = ({ onSubmit, onClose }) => {
   });
 
   const [errors, setErrors] = useState({});
+  const [showContactForm, setShowContactForm] = useState(true);
+  const [isCaptchaVerified, setIsCaptchaVerified] = useState(false);
+  const [quoteData, setQuoteData] = useState(null); // store calculated data here
+  const [finalPreview, setFinalPreview] = useState(false);
 
   const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -62,6 +71,46 @@ const ContactFormModal = ({ onSubmit, onClose }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     handleFormSubmit();
+  };
+
+  const onCaptchaChange = (value) => {
+    setIsCaptchaVerified(!!value);
+  };
+
+  const handleRateLimitedSubmit = () => {
+    const now = Date.now();
+    if (now - lastSubmitTime < RATE_LIMIT_DELAY) {
+      alert('Please wait before trying again.');
+      return;
+    }
+    lastSubmitTime = now;
+    // ...existing handle logic...
+  };
+
+  const handleContactSubmit = (e) => {
+    e.preventDefault();
+    if (!isCaptchaVerified) {
+      alert('Please verify the CAPTCHA.');
+      return;
+    }
+    // Cache contact info and hide form
+    setShowContactForm(false);
+  };
+
+  const calculateQuote = () => {
+    // ...some calculation, setQuoteData(...)
+  };
+
+  const handleFinalPreview = () => {
+    // Show final preview combining contactInfo + quoteData
+    setFinalPreview(true);
+  };
+
+  const handleFinalSubmitToBackend = () => {
+    // Merged contact + quote data
+    const mergedData = { ...contactInfo, ...quoteData };
+    // Submit to your backend with axios
+    // axios.post('/api/quotes', mergedData)...
   };
 
   return (
@@ -161,6 +210,7 @@ const ContactFormModal = ({ onSubmit, onClose }) => {
             />
           </div>
           
+          <ReCAPTCHA sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI" onChange={onCaptchaChange} />
           <button
             type="submit"
             className="w-full bg-dustup-quote text-primary-green font-semibold py-3 px-6 rounded-lg hover:group-aria-expanded:bottom-auto hover:bg-dustup-quote-hover transition-colors duration-200"

@@ -1,7 +1,7 @@
-module.exports = {
+export default {
   content: [
     "./index.html",
-    "./src/api/**/*.{js,ts,jsx,tsx}",
+    "./src/**/*.{js,ts,jsx,tsx}", // This catches all files in src
   ],
   theme: {
     extend: {

@@ -1,15 +1,21 @@
 {
     "compilerOptions": {
-        "target": "ES6",
-        "module": "NodeNext",
-        "strict": true,
-        "esModuleInterop": true,
-        "skipLibCheck": true,
         "allowJs": true,
-        "sourceMap": true,
+        "allowSyntheticDefaultImports": true,
+        "checkJs": true,
+        "declaration": true,
+        "declarationMap": true,
+        "esModuleInterop": true,
+        "forceConsistentCasingInFileNames": true,
+        "jsx": "react",
+        "module": "NodeNext",
+        "moduleResolution": "node16",
         "outDir": "dist",
-        "forceConsistentCasingInFileNames": true
-    },
-    "include": ["./**/**.{js,jsx,ts,tsx}", "src/server.js"],
+        "pretty": true,
+        "skipLibCheck": false,
+        "sourceMap": true,
+        "target": "ES6"
+        },
+    "include": ["./**/*", "src/index.js", "src/server.js"],
     "exclude": ["node_modules", "dist"]
 }

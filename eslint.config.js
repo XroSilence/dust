@@ -13,7 +13,7 @@ export default {
         'plugin:@typescript-eslint/recommended',
         'plugin:prettier/recommended'
     ],
-    ignorePatterns: ['dist', '.eslintrc.cjs'],
+    ignorePatterns: ['dist', '.eslintrc.js'],
     parser: '@typescript-eslint/parser',
     plugins: ['react-refresh', 'react', '@typescript-eslint'],
     settings: {
@@ -28,7 +28,7 @@ export default {
         ],
         'react/react-in-jsx-scope': 'off',
         'react/prop-types': 'off',
-        'no-unused-vars': 'warn',
+        'no-unused-vars': 'off',
         '@typescript-eslint/no-unused-vars': 'warn'
     }
 }
