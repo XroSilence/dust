@@ -9,22 +9,24 @@
     "win32"
   ],
   "scripts": {
-    "clean": "rimraf dist && mkdir dist && cd backend && npm run clean",
-    "dev:frontend": "vite",
-    "dev:backend": "cd backend && npm run dev",
-    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
-    "build:frontend": "vite build",
-    "build:backend": "cd backend && npm run build",
-    "build": "npm run clean && npm run build:frontend && npm run build:backend",
     "start": "cd backend && npm run start",
-    "predeploy": "npm run build",
+    "clean": "rimraf dist && mkdir dist && cd backend && npm run clean",
+     "ci": "npm ci && cd backend && npm run ci",
+    "dev": "concurrently \"vite\" \"npm run dev:backend\"",
+    "dev:backend": "cd backend && npm run dev",
+    "build": "vite build && npm run build:backend",
+    "build:backend": "cd backend && npm run build",
+    "preview": "vite preview",
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
+    "@emailjs/browser": "^4.4.1",
     "@vitejs/plugin-react": "^4.3.4",
     "axios": "^1.7.9",
+    "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "he": "^1.2.0",
+    "http-proxy-middleware": "^3.0.3",
     "lucide-react": "^0.471.0",
     "otpauth": "^9.3.6",
     "qrcode": "^1.5.4",
@@ -34,6 +36,7 @@
     "react-router-dom": "^7.1.1"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "@typescript-eslint/eslint-plugin": "^8.20.0",
     "@typescript-eslint/parser": "^8.20.0",

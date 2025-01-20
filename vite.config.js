@@ -19,19 +19,19 @@ export default defineConfig({
   },
 
   server: {
-            proxy: {
+    proxy: {
               '/api': {
-                target: 'http://localhost:3001',
+                target: 'http://localhost:3000',
                 changeOrigin: true,
                 secure: false
               },
               '/api/quote': {
-                target: 'http://localhost:3001',
+                target: 'http://localhost:3000',
                 changeOrigin: true,
                 secure: false
               },
               '/api/contact': {
-                target: 'http://localhost:3001',
+                target: 'http://localhost:3000',
                 changeOrigin: true,
                 secure: false
               }
@@ -39,7 +39,7 @@ export default defineConfig({
           },
    
   optimizeDeps: {
-    exclude: ['express', 'multer', 'nodemailer', 'http-proxy-middleware']
+    exclude: ['']
   }
 })
      

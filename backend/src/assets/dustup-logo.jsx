@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 
-/** @type {import('react').FC} */
 const DustupLogo = () => {
   const [isHovered, setIsHovered] = useState(false);
 

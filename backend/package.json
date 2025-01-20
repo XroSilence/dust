@@ -13,14 +13,16 @@
   "license": "MIT",
   "author": "XroSilence",
   "type": "module",
-  "main": "dist/index.js",
+  "main": "dist/server.js",
   "scripts": {
-    "dev": "nodemon dist/index.js",
-    "clean": "rimraf dist && mkdir dist",
-    "build": "tsc --allowjs",
-    "start": "node dist/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+ "dev": "nodemon dist/server.js",
+ "build": "tsc",
+ "ci": "npm ci",
+ "start": "node dist/server.js",
+ "clean": "rimraf dist && mkdir dist",
+ "test": "echo \"Error: no test specified\" && exit 1"
   },
+  
   "dependencies": {
     "body-parser": "^1.20.3",
     "dotenv": "^16.4.7",
@@ -35,5 +37,6 @@
     "@types/node": "^22.10.7",
     "nodemon": "^3.1.9",
     "vite": "^6.0.5"
-  }
+  },
+  "types": "./dist/index.d.ts"
 }

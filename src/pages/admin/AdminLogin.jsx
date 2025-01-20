@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import ReCAPTCHA from 'react-google-recaptcha';
 
-const AdminLogin = () => {
+export function AdminLogin() {
     const [credentials, setCredentials] = useState({ username: '', password: '' });
     const [captchaToken, setCaptchaToken] = useState(null);
     const [isLoggedIn, setIsLoggedIn] = useState(localStorage.getItem('adminToken'));

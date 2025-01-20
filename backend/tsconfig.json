@@ -1,6 +1,7 @@
 {
     "compilerOptions": {
         "allowJs": true,
+        "strict": true,
         "allowSyntheticDefaultImports": true,
         "checkJs": true,
         "declaration": true,
@@ -10,12 +11,12 @@
         "jsx": "react",
         "module": "NodeNext",
         "moduleResolution": "node16",
-        "outDir": "dist",
+        "outDir": "dist/",
         "pretty": true,
         "skipLibCheck": false,
         "sourceMap": true,
         "target": "ES6"
         },
-    "include": ["./**/*", "src/index.js", "src/server.js"],
+    "include": ["./src/*.{jsx,tsx,ts}", "server.ts"],
     "exclude": ["node_modules", "dist"]
 }

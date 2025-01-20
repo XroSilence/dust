@@ -1,9 +1,10 @@
 // src/pages/admin/SetupTwoFactor.jsx
 import React, { useState, useEffect } from 'react';
-import { Navigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import * as OTPAuth from 'otpauth';
+import { QRCodeCanvas } from 'qrcode.react';
 
-const SetupTwoFactor = () => {
+export default function SetupTwoFactor() {
     const [qrCode, setQrCode] = useState('');
     const [secret, setSecret] = useState('');
     const [verificationCode, setVerificationCode] = useState('');
@@ -45,18 +46,19 @@ const SetupTwoFactor = () => {
         }
     };
 
+    const navigate = useNavigate();
+
     if (isSetup) {
-        return <Navigate to="/admin/dashboard" />;
+        navigate('/admin/dashboard');
+        return null;
     }
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-slate-900">
             <div className="bg-slate-800 p-8 rounded-lg text-white">
                 <h2 className="text-xl mb-4">Setup Two-Factor Authentication</h2>
-                <p className="mb-4">Scan this QR code with your authenticator app:</p>
                 <div className="mb-4">
-                    {/* You'll need to add a QR code library to display the QR code */}
-                    <img src={`https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl=${encodeURIComponent(qrCode)}`} alt="QR Code" />
+                    <QRCodeCanvas value={qrCode} size={200} />
                 </div>
                 <p className="mb-4">Or enter this secret manually: {secret}</p>
                 <input
@@ -65,15 +67,13 @@ const SetupTwoFactor = () => {
                     onChange={(e) => setVerificationCode(e.target.value)}
                     className="mb-4 p-2 w-full rounded text-black"
                 />
-                <button
-                    onClick={verifySetup}
-                    className="w-full bg-blue-500 p-2 rounded"
-                >
-                    Verify and Enable 2FA
-                </button>
-            </div>
+            <button
+                onClick={verifySetup}
+                className="w-full bg-blue-500 p-2 rounded"
+            >
+                Verify and Enable 2FA
+            </button>
         </div>
-    );
-};
-
-export default SetupTwoFactor;
+    </div>
+);
+}
