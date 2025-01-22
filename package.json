@@ -11,7 +11,7 @@
   "scripts": {
     "start": "cd backend && npm run start",
     "clean": "rimraf dist && mkdir dist && cd backend && npm run clean",
-     "ci": "npm ci && cd backend && npm run ci",
+    "ci": "npm ci && cd backend && npm run ci",
     "dev": "concurrently \"vite\" \"npm run dev:backend\"",
     "dev:backend": "cd backend && npm run dev",
     "build": "vite build && npm run build:backend",
@@ -38,6 +38,7 @@
   "devDependencies": {
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
+    "@types/node": "^22.10.7",
     "@typescript-eslint/eslint-plugin": "^8.20.0",
     "@typescript-eslint/parser": "^8.20.0",
     "autoprefixer": "^10.4.20",
