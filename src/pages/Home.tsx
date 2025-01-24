@@ -4,13 +4,9 @@ import { useNavigate } from 'react-router-dom';
 
 
 export default function Home() {
-  const [activeIntent, setActiveIntent] = React.useState(null);
+  const [activeIntent, setActiveIntent] = React.useState<string | null>(null);
   const [isHovered, setIsHovered] = React.useState(false);
   const navigate = useNavigate();
-
-  const handleNavigation = () => {
-    navigate('./src/pages');
-  };
 
   const intentPaths = [
     {

@@ -1,8 +1,23 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import api from '../../utils/axiosConfig';
+import { X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
-const ContactFormModal = ({ onSubmit, onClose }) => {
-  const [contactInfo, setContactInfo] = useState({
+interface ContactInfo {
+  name: string;
+  email: string;
+  phone: string;
+  company: string;
+  message: string;
+}
+
+interface ContactFormModalProps {
+  onSubmit: (contactInfo: ContactInfo) => void;
+  onClose: () => void;
+}
+
+const ContactFormModal: React.FC<ContactFormModalProps> = ({ onSubmit, onClose }) => {
+  const [contactInfo, setContactInfo] = useState<ContactInfo>({
     name: '',
     email: '',
     phone: '',
@@ -17,18 +32,20 @@ const ContactFormModal = ({ onSubmit, onClose }) => {
     form: ''
   });
 
-  const validateEmail = (email) => {
+  const navigate = useNavigate();
+
+  const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   };
 
-  const validatePhone = (phone) => {
+  const validatePhone = (phone: string) => {
     const phoneRegex = /^\+?[\d\s-]{10,}$/;
     return phoneRegex.test(phone);
   };
 
   const validateForm = () => {
-    const newErrors = {};
+    const newErrors: { [key: string]: string } = {};
     if (!contactInfo.name.trim()) newErrors.name = 'Name is required';
     if (!validateEmail(contactInfo.email)) newErrors.email = 'Valid email is required';
     if (!validatePhone(contactInfo.phone)) newErrors.phone = 'Valid phone number is required';
@@ -40,7 +57,7 @@ const ContactFormModal = ({ onSubmit, onClose }) => {
     if (Object.keys(formErrors).length === 0) {
       return true;
     } else {
-      setErrors(formErrors);
+      setErrors({ ...errors, ...formErrors });
       return false;
     }
   };
@@ -48,19 +65,21 @@ const ContactFormModal = ({ onSubmit, onClose }) => {
   const handleFormSubmit = async () => {
     if (handleFormValidation()) {
       try {
-        const response = await axios.post('/api/contact', contactInfo);
-
-        if (response.status !== 200) throw new Error('Failed to submit contact info');
-
-        onSubmit(contactInfo);
+        const response = await api.post('/contact', contactInfo);
+        if (response.status === 200) {
+          onSubmit(contactInfo);
+          navigate('/quote-calculator'); // Navigate to QuoteCalculator.tsx
+        } else {
+          throw new Error('Failed to submit contact info');
+        }
       } catch (error) {
         console.error('Error:', error);
-        setErrors({ form: 'Failed to submit contact info' });
+        setErrors({ ...errors, form: 'Failed to submit contact info' });
       }
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     handleFormSubmit();
   };
@@ -160,12 +179,8 @@ const ContactFormModal = ({ onSubmit, onClose }) => {
           </div>
 
           <button
-            type="button"
-            onClick={handleFormSubmit}
-            className={`w-full px-4 py-2 text-white rounded-lg transition-colors duration-200 
-               ${isCaptchaVerified
-                ? 'bg-dustup-quote hover:bg-dustup-quote-hover'
-                : 'bg-gray-400 cursor-not-allowed'}`}
+            type="submit"
+            className="dustup-quote w-full px-5 py-3 Bold-lg"
           >
             Continue to Calculator
           </button>

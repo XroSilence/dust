@@ -9,15 +9,13 @@
     "win32"
   ],
   "scripts": {
-    "start": "cd backend && npm run start",
-    "clean": "rimraf dist && mkdir dist && cd backend && npm run clean",
-    "ci": "npm ci && cd backend && npm run ci",
-    "dev": "concurrently \"vite\" \"npm run dev:backend\"",
-    "dev:backend": "cd backend && npm run dev",
-    "build": "vite build && npm run build:backend",
-    "build:backend": "cd backend && npm run build",
-    "preview": "vite preview",
-    "deploy": "gh-pages -d dist"
+    "start": "vite preview",
+    "clean": "rimraf dist && mkdir dist",
+    "ci": "npm ci",
+    "dev": "vite",
+    "build": "vite build",
+    "predeploy": "vite predeploy"
+    
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
@@ -28,6 +26,7 @@
     "he": "^1.2.0",
     "http-proxy-middleware": "^3.0.3",
     "lucide-react": "^0.471.0",
+    "node": "^18.20.6",
     "otpauth": "^9.3.6",
     "qrcode": "^1.5.4",
     "react": "^18.2.0",
@@ -39,6 +38,9 @@
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "@types/node": "^22.10.7",
+    "@types/qrcode": "^1.5.5",
+    "@types/react": "^19.0.7",
+    "@types/react-dom": "^19.0.3",
     "@typescript-eslint/eslint-plugin": "^8.20.0",
     "@typescript-eslint/parser": "^8.20.0",
     "autoprefixer": "^10.4.20",

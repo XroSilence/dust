@@ -2,7 +2,7 @@
 
 export const API_URL = import.meta.env.PROD 
     ? 'https://dustup.online'  // Production backend URL
-    : 'http://localhost:3000'; // Development backend URL
+    : 'http://localhost:5000'; // Development backend URL
   
 export interface makeRequest {
     endpoint: string;

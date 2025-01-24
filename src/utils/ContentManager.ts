@@ -1,5 +1,5 @@
 // api/utils/contentManager.js
-export const saveContent = (content) => {
+export const saveContent = (content: unknown) => {
     localStorage.setItem('siteContent', JSON.stringify(content));
 };
 

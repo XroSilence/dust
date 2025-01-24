@@ -7,7 +7,7 @@ export interface ImportMeta {
 
 const API_URL = import.meta.env.PROD 
   ? '/api'  
-  : 'http://localhost:3000/api';  // Development
+  : 'http://localhost:5000';  // Development
 
 export async function makeRequest<T>(
   endpoint: string, 

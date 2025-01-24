@@ -2,15 +2,48 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
 export default defineConfig({
+  build: {
+    rollupOptions: {
+      input: 'index.html',
+      output: {
+        // This function categorizes chunks based on their file paths
+        // to optimize the build output by grouping related modules together.
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            return 'vendor';
+          
+          }
+          if (id.includes('src/components')) {
+            return 'components';
+          }
+          if (id.includes('postcss') || id.includes('tailwind')) {
+            return 'styles';
+          }     
+          if (id.includes('src/utils')) {
+            return 'utils';
+          }
+          if (id.includes('src/pages')) {
+            return 'pages';
+          }
+          
+          
+        }
+      }
+    }
+  },
+
   plugins: [react()],
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:5000', // Changed to match backend port
+        target: 'http://localhost:5000',
         changeOrigin: true,
-        secure: false
+        rewrite: (path) => path.replace(/^\/api/, '')
       }
     },
-    port: 3000
+    fs: {
+      strict: true,
+      allow: ['..']
+    }
   }
-});
+})

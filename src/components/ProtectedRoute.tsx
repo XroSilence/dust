@@ -1,7 +1,9 @@
 // src/components/ProtectedRoute.jsx
+import React from 'react';
 import { Navigate } from 'react-router-dom';
+import { ReactNode } from 'react';
 
-const ProtectedRoute = ({ children, requireTwoFactor = false }) => {
+const ProtectedRoute = ({ children, requireTwoFactor = false }: { children: ReactNode, requireTwoFactor?: boolean }) => {
     const isAuthenticated = localStorage.getItem('adminToken');
     const twoFactorSetup = localStorage.getItem('twoFactorSetup');
 
