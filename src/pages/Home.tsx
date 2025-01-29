@@ -1,17 +1,12 @@
-/* eslint-disable no-unused-vars */
 import React from 'react';
 import { ArrowUpRight, Building2, ClipboardCheck, MapPin, Phone, Wind } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 
 export default function Home() {
-  const [activeIntent, setActiveIntent] = React.useState(null);
+  const [activeIntent, setActiveIntent] = React.useState<string | null>(null);
   const [isHovered, setIsHovered] = React.useState(false);
   const navigate = useNavigate();
-
-  const handleNavigation = () => {
-    navigate('./src/pages');
-  };
 
   const intentPaths = [
     {
