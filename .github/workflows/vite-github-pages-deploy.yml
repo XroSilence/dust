@@ -23,6 +23,17 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
+      - name: Cache NPM dependencies
+        uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+      - name: Clean and create dist directory
+        run: |
+          rm -rf dist
+          mkdir dist
       - name: Clean Install
         run: |
           rm -rf node_modules
@@ -41,4 +52,3 @@ jobs:
         uses: actions/deploy-pages@v4
         env: 
           DEPLOY_SECRET: ${{ secrets.DEPLOY_SECRET }}
-
