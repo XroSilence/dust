@@ -20,9 +20,18 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
+    "plugins": [
+      {
+        "name": "typescript-eslint-plugin",
+        "@babel/plugin-syntax-jsx": true,
+        "@babel/plugin-syntax-typescript": true,
+        
+      
+      }
+    ]
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "include": ["src/**/*.ts", "src/**/*.tsx", "../backend/src/config/axiosConfig.ts"],
   "exclude": ["node_modules"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

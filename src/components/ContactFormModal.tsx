@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import api from '../../utils/axiosConfig';
-import { X } from 'lucide-react';
+import api from '../../../backend/src/config/axiosConfig';
+import { X, ArrowRightSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface ContactInfo {
@@ -32,7 +32,8 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({ onSubmit, onClose }
     form: ''
   });
 
-  const navigate = useNavigate();
+
+  const _navigate = useNavigate(); // ESLint will ignore unused variables prefixed with _
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -40,7 +41,8 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({ onSubmit, onClose }
   };
 
   const validatePhone = (phone: string) => {
-    const phoneRegex = /^\+?[\d\s-]{10,}$/;
+    // More comprehensive phone regex that handles international formats
+    const phoneRegex = /^(\+?\d{1,3}[-.]?)?\s*\(?(\d{3})\)?[-.\s]*(\d{3})[-.\s]*(\d{4})$/;
     return phoneRegex.test(phone);
   };
 
@@ -65,10 +67,13 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({ onSubmit, onClose }
   const handleFormSubmit = async () => {
     if (handleFormValidation()) {
       try {
-        const response = await api.post('/contact', contactInfo);
+        // First submit contact info to backend
+        const response = await api.post('/api/contact', contactInfo);
+        
         if (response.status === 200) {
+          // Pass contact info to parent and close modal
           onSubmit(contactInfo);
-          navigate('/quote-calculator'); // Navigate to QuoteCalculator.tsx
+          // Don't navigate here - let parent component handle it
         } else {
           throw new Error('Failed to submit contact info');
         }
@@ -180,9 +185,10 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({ onSubmit, onClose }
 
           <button
             type="submit"
-            className="dustup-quote w-full px-5 py-3 Bold-lg"
+            className="dustup-quote w-full px-5 py-3 Bold-lg dustup-quote:hover"
           >
-            Continue to Calculator
+            Continue
+            <ArrowRightSquare className="inline ml-2" size={16} />
           </button>
         </form>
       </div>

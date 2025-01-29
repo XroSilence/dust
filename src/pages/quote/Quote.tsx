@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Share2, Home } from 'lucide-react';
-import api from '../../utils/axiosConfig';
-import ContactFormModal from './ContactFormModal';
+import api from '../../../../backend/src/config/axiosConfig';
+import ContactFormModal from '../../components/ContactFormModal';
 import QuoteCalculator from './QuoteCalculator';
 
 interface Metrics {
@@ -39,11 +39,19 @@ interface QuoteCalculation {
   cubicArea: number;
 }
 
+declare global {
+  interface Window {
+    grecaptcha: any;
+    onRecaptchaLoad: () => void;
+  }
+}
+
 const Quote: React.FC = () => {
   const navigate = useNavigate();
   const [showContactForm, setShowContactForm] = useState(true);
   const [showSuccess, setShowSuccess] = useState(false);
   const [userContact, setUserContact] = useState<ContactInfo | null>(null);
+  const [captchaVerified, setCaptchaVerified] = useState(false);
   const [metrics, setMetrics] = useState<Metrics>({
     length: '',
     width: '',
@@ -80,30 +88,40 @@ const Quote: React.FC = () => {
     loadExistingQuote();
   }, []);
 
-  const handleContactSubmit = (contactInfo: ContactInfo) => {
-    console.log('Contact form submitted:', contactInfo); // Debug log
-    setUserContact(contactInfo);
-    setShowContactForm(false);
+  const handleContactSubmit = async (contactInfo: ContactInfo) => {
+    try {
+      setUserContact(contactInfo);
+      setShowContactForm(false);
+      // Store contact info in session/localStorage if needed
+      localStorage.setItem('contactInfo', JSON.stringify(contactInfo));
+    } catch (error) {
+      console.error('Error saving contact info:', error);
+    }
   };
 
-  const [captchaVerified, setCaptchaVerified] = useState(false);
-
   useEffect(() => {
-    const verifyCaptcha = async () => {
-      try {
-        const response = await api.get('/api/captcha');
-        if (response.data.success) {
+    // Load reCAPTCHA script
+    const script = document.createElement('script');
+    script.src = `https://www.google.com/recaptcha/api.js?render=explicit&onload=onRecaptchaLoad`;
+    script.async = true;
+    script.defer = true;
+
+    // Define callback when reCAPTCHA is loaded
+    window.onRecaptchaLoad = () => {
+      window.grecaptcha.render('recaptcha', {
+        sitekey: 'YOUR_RECAPTCHA_SITE_KEY',
+        callback: (response: string) => {
           setCaptchaVerified(true);
-        } else {
-          throw new Error('Captcha verification failed');
         }
-      } catch (error) {
-        console.error('Error verifying captcha:', error);
-        // Handle error (show error message to user)
-      }
+      });
     };
 
-    verifyCaptcha();
+    document.head.appendChild(script);
+
+    return () => {
+      document.head.removeChild(script);
+      delete window.onRecaptchaLoad;
+    };
   }, []);
 
   const calculateQuote = (): QuoteCalculation => {
@@ -140,7 +158,7 @@ const Quote: React.FC = () => {
   };
 
   const handleSubmitQuote = async () => {
-    if (!userContact) return;
+    if (!userContact || !captchaVerified) return;
 
     try {
       const quoteData = {
@@ -156,14 +174,22 @@ const Quote: React.FC = () => {
 
       if (response.status === 200) {
         setShowSuccess(true);
-      } else {
-        throw new Error('Failed to submit quote');
+        // Clear stored data
+        localStorage.removeItem('contactInfo');
       }
     } catch (error) {
       console.error('Error:', error);
-      // Handle error (show error message to user)
     }
   };
+
+  // Load saved contact info on mount
+  useEffect(() => {
+    const savedContact = localStorage.getItem('contactInfo');
+    if (savedContact) {
+      setUserContact(JSON.parse(savedContact));
+      setShowContactForm(false);
+    }
+  }, []);
 
   return (
     <div className="min-h-screen bg-slate-900 py-8">
@@ -185,16 +211,16 @@ const Quote: React.FC = () => {
               contactInfo={userContact}
             />
             <div className="mt-4 text-center">
-              {captchaVerified ? (
-                <button
-                  onClick={handleSubmitQuote}
-                  className="bg-primary-green text-white font-semibold py-2 px-6 rounded-lg hover:bg-green-600 transition-colors duration-200 mr-4"
-                >
-                  <Share2 className="inline mr-2" size={16} /> Submit Quote
-                </button>
-              ) : (
-                <div className="text-gray-400">Please complete the reCAPTCHA to submit</div>
-              )}
+              <div id="recaptcha" className="mb-4"></div>
+              <button
+                onClick={handleSubmitQuote}
+                disabled={!captchaVerified}
+                className={`bg-primary-green text-white font-semibold py-2 px-6 rounded-lg transition-colors duration-200 mr-4 ${
+                  !captchaVerified ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-600'
+                }`}
+              >
+                <Share2 className="inline mr-2" size={16} /> Submit Quote
+              </button>
               <button
                 onClick={() => navigate('/')}
                 className="bg-dustup-quote text-primary-green font-semibold py-2 px-6 rounded-lg hover:bg-dustup-quote-hover transition-colors duration-200"
